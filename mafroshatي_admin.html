@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مفروشاتي — لوحة التحكم</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#1f2937;--bg4:#252d3a;
+  --gold:#c9a96e;--gold2:#e8c57a;--gold-dim:rgba(201,169,110,.12);
+  --tx:#e6edf3;--mt:#8b949e;--bd:#30363d;
+  --green:#2ea043;--red:#f85149;--blue:#58a6ff;
+  --shadow:0 4px 24px rgba(0,0,0,.4);
+}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--tx);direction:rtl;overflow:hidden;height:100vh;display:flex;font-size:13px}
+
+.sidebar{width:210px;flex-shrink:0;background:var(--bg2);border-left:1px solid var(--bd);display:flex;flex-direction:column;height:100vh}
+.sidebar-brand{padding:18px 14px 14px;border-bottom:1px solid var(--bd)}
+.sidebar-logo{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+.sidebar-logo-icon{width:34px;height:34px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#0d1117}
+.sidebar-logo-name{font-size:16px;font-weight:900;color:var(--gold)}
+.sidebar-sub{font-size:10px;color:var(--mt);margin-right:42px}
+.sidebar-nav{padding:10px 8px;flex:1;overflow-y:auto}
+.nav-label{font-size:10px;font-weight:700;color:var(--mt);letter-spacing:.8px;padding:8px 8px 4px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;cursor:pointer;color:var(--mt);font-size:13px;font-weight:600;transition:all .18s;margin-bottom:2px;border:none;background:none;width:100%;font-family:'Tajawal',sans-serif;text-align:right}
+.nav-item:hover{background:var(--bg3);color:var(--tx)}
+.nav-item.on{background:var(--gold-dim);color:var(--gold);font-weight:800}
+.nav-icon{font-size:15px;flex-shrink:0}
+.nav-badge{background:var(--gold);color:#0d1117;border-radius:50px;padding:1px 7px;font-size:10px;font-weight:900;margin-right:auto}
+.nav-badge-red{background:var(--red);color:#fff;border-radius:50px;padding:1px 7px;font-size:10px;font-weight:900;margin-right:auto}
+.sidebar-footer{padding:12px;border-top:1px solid var(--bd)}
+.admin-user{display:flex;align-items:center;gap:8px}
+.admin-avatar{width:32px;height:32px;border-radius:50%;background:var(--bg3);border:1.5px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--gold)}
+.admin-name{font-size:12px;font-weight:700;color:var(--tx)}
+.admin-role{font-size:10px;color:var(--mt)}
+
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:52px;background:var(--bg2);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+.topbar-title{font-size:15px;font-weight:800;color:var(--tx)}
+.topbar-sub{font-size:11px;color:var(--mt);margin-top:1px}
+.topbar-acts{margin-right:auto;display:flex;gap:8px}
+.btn-primary{padding:7px 16px;border-radius:7px;background:var(--gold);color:#0d1117;font-size:12px;font-weight:800;border:none;cursor:pointer;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:5px;transition:opacity .2s}
+.btn-primary:hover{opacity:.88}
+.btn-ghost{padding:7px 14px;border-radius:7px;background:none;color:var(--mt);font-size:12px;font-weight:700;border:1.5px solid var(--bd);cursor:pointer;font-family:'Tajawal',sans-serif;transition:all .2s}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+.content{flex:1;overflow-y:auto;padding:18px}
+
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.stat-card{background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:14px 16px;cursor:pointer;transition:border-color .2s}
+.stat-card:hover{border-color:rgba(201,169,110,.4)}
+.stat-icon{font-size:22px;margin-bottom:8px}
+.stat-label{font-size:11px;color:var(--mt);margin-bottom:5px;font-weight:600}
+.stat-val{font-size:24px;font-weight:900;color:var(--tx);margin-bottom:3px}
+.stat-change{font-size:11px;color:var(--green)}
+
+.section{background:var(--bg2);border:1px solid var(--bd);border-radius:10px;margin-bottom:14px;overflow:hidden}
+.section-hd{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--bd)}
+.section-title{font-size:13px;font-weight:800;color:var(--tx);display:flex;align-items:center;gap:7px}
+.section-count{font-size:11px;color:var(--mt);background:var(--bg3);padding:2px 8px;border-radius:20px}
+
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{padding:9px 14px;text-align:right;font-size:11px;font-weight:700;color:var(--mt);border-bottom:1px solid var(--bd);background:var(--bg3);white-space:nowrap}
+.tbl td{padding:11px 14px;border-bottom:1px solid rgba(48,54,61,.5);font-size:12px;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,.018)}
+.tbl-name{font-weight:700;color:var(--tx)}
+.tbl-sub{font-size:11px;color:var(--mt);margin-top:2px}
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700}
+.badge-active{background:rgba(46,160,67,.15);color:var(--green);border:1px solid rgba(46,160,67,.3)}
+.badge-pending{background:rgba(201,169,110,.12);color:var(--gold);border:1px solid rgba(201,169,110,.3)}
+.badge-suspended{background:rgba(248,81,73,.12);color:var(--red);border:1px solid rgba(248,81,73,.3)}
+.color-dots{display:flex;gap:3px;flex-wrap:wrap}
+.color-dot{width:13px;height:13px;border-radius:50%;border:1.5px solid rgba(255,255,255,.15)}
+.actions{display:flex;gap:5px}
+.act-btn{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;border:none;cursor:pointer;font-family:'Tajawal',sans-serif;transition:all .18s}
+.act-edit{background:rgba(88,166,255,.1);color:var(--blue);border:1px solid rgba(88,166,255,.2)}
+.act-edit:hover{background:rgba(88,166,255,.2)}
+.act-del{background:rgba(248,81,73,.08);color:var(--red);border:1px solid rgba(248,81,73,.18)}
+.act-del:hover{background:rgba(248,81,73,.18)}
+.tbl-emoji{width:36px;height:36px;border-radius:7px;background:var(--bg3);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.commission-tag{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(201,169,110,.3);padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700}
+
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--bd);border-radius:14px;width:min(480px,96vw);max-height:90vh;overflow-y:auto;box-shadow:var(--shadow);animation:popIn .22s ease}
+@keyframes popIn{from{transform:scale(.93);opacity:.4}to{transform:scale(1);opacity:1}}
+.modal-hd{padding:15px 18px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg2);z-index:1}
+.modal-title{font-size:14px;font-weight:800}
+.modal-close{background:var(--bg3);border:1px solid var(--bd);border-radius:50%;width:28px;height:28px;cursor:pointer;color:var(--mt);font-size:13px;display:flex;align-items:center;justify-content:center}
+.modal-body{padding:18px}
+.form-row{margin-bottom:13px}
+.form-label{font-size:11px;font-weight:700;color:var(--mt);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:.4px}
+.form-input{width:100%;padding:9px 12px;border:1.5px solid var(--bd);border-radius:8px;font-size:13px;font-family:'Tajawal',sans-serif;background:var(--bg3);color:var(--tx);outline:none;transition:border-color .2s}
+.form-input:focus{border-color:var(--gold)}
+.form-select{width:100%;padding:9px 12px;border:1.5px solid var(--bd);border-radius:8px;font-size:13px;font-family:'Tajawal',sans-serif;background:var(--bg3);color:var(--tx);outline:none;cursor:pointer}
+.form-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-footer{padding:13px 18px;border-top:1px solid var(--bd);display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:var(--bg2)}
+.btn-danger{padding:7px 14px;border-radius:7px;background:rgba(248,81,73,.12);color:var(--red);font-size:12px;font-weight:800;border:1px solid rgba(248,81,73,.25);cursor:pointer;font-family:'Tajawal',sans-serif}
+
+.colors-editor{border:1.5px solid var(--bd);border-radius:8px;padding:10px;background:var(--bg3)}
+.color-block{border:1px solid var(--bd);border-radius:8px;padding:10px;margin-bottom:8px;background:var(--bg2)}
+.color-block-hd{display:flex;align-items:center;gap:7px;margin-bottom:10px}
+.color-preview{width:30px;height:30px;border-radius:6px;flex-shrink:0;border:1.5px solid var(--bd);cursor:pointer}
+.cin{flex:1;padding:7px 10px;border:1.5px solid var(--bd);border-radius:6px;font-size:12px;font-family:'Tajawal',sans-serif;background:var(--bg3);color:var(--tx);outline:none}
+.cin:focus{border-color:var(--gold)}
+.cin-sm{width:72px;padding:7px 8px;border:1.5px solid var(--bd);border-radius:6px;font-size:12px;font-family:'Tajawal',sans-serif;background:var(--bg3);color:var(--tx);outline:none;direction:ltr}
+.cin-sm:focus{border-color:var(--gold)}
+.color-remove{background:none;border:none;color:var(--mt);cursor:pointer;font-size:16px;padding:3px;transition:color .18s;margin-right:auto}
+.color-remove:hover{color:var(--red)}
+/* صور اللون */
+.color-imgs-label{font-size:10px;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.color-imgs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px}
+.color-img-thumb{position:relative;aspect-ratio:1;border-radius:6px;overflow:hidden;border:1.5px solid var(--bd);background:var(--bg3);cursor:pointer}
+.color-img-thumb img{width:100%;height:100%;object-fit:cover}
+.color-img-del{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.7);color:#fff;border:none;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center}
+.color-img-add{aspect-ratio:1;border-radius:6px;border:1.5px dashed var(--bd);background:none;color:var(--mt);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.color-img-add:hover{border-color:var(--gold);color:var(--gold)}
+.add-color-btn{width:100%;padding:7px;border-radius:6px;background:none;border:1.5px dashed var(--bd);color:var(--mt);font-size:12px;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif;transition:all .2s;margin-top:4px}
+.add-color-btn:hover{border-color:var(--gold);color:var(--gold)}
+
+.prod-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;max-height:200px;overflow-y:auto}
+.prod-check{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg3);border-radius:7px;border:1.5px solid var(--bd);cursor:pointer;transition:all .18s}
+.prod-check:hover{border-color:rgba(201,169,110,.4)}
+.prod-check.sel{border-color:var(--gold);background:var(--gold-dim)}
+.prod-check-lbl{font-size:11px;font-weight:600;line-height:1.3;flex:1}
+
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--bd);color:var(--tx);padding:9px 22px;border-radius:50px;font-size:12px;font-weight:700;z-index:9999;display:none;box-shadow:var(--shadow);font-family:'Tajawal',sans-serif;white-space:nowrap}
+.empty{text-align:center;padding:36px;color:var(--mt);font-size:13px}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">م</div>
+      <div class="sidebar-logo-name">مفروشاتي</div>
+    </div>
+    <div class="sidebar-sub">لوحة التحكم — Super Admin</div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-label">القائمة الرئيسية</div>
+    <button class="nav-item on" id="nav-overview" onclick="goTab('overview',this)"><span class="nav-icon">📊</span> نظرة عامة</button>
+    <button class="nav-item" id="nav-brands" onclick="goTab('brands',this)"><span class="nav-icon">🏢</span> الشركات <span class="nav-badge" id="nb-brands">4</span></button>
+    <button class="nav-item" id="nav-products" onclick="goTab('products',this)"><span class="nav-icon">🛋️</span> المنتجات <span class="nav-badge" id="nb-products">8</span></button>
+    <button class="nav-item" id="nav-marketers" onclick="goTab('marketers',this)"><span class="nav-icon">👤</span> المسوقون <span class="nav-badge" id="nb-marketers">3</span></button>
+    <div class="nav-label" style="margin-top:6px">المتابعة</div>
+    <button class="nav-item" id="nav-orders" onclick="goTab('orders',this)"><span class="nav-icon">📦</span> الطلبات <span class="nav-badge-red" id="nb-orders">2</span></button>
+  </div>
+  <div class="sidebar-footer">
+    <div class="admin-user">
+      <div class="admin-avatar">S</div>
+      <div>
+        <div class="admin-name">Super Admin</div>
+        <div class="admin-role">مفروشاتي · الكويت</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="topbar-title">نظرة عامة</div>
+      <div class="topbar-sub" id="topbar-sub">مرحباً، كل شيء تمام 👋</div>
+    </div>
+    <div class="topbar-acts" id="topbar-acts"></div>
+  </div>
+  <div class="content" id="content"></div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal" id="modal">
+    <div class="modal-hd">
+      <div class="modal-title" id="modalTitle">—</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<!-- Firebase CDN (compat version — no imports needed) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDz2PtMjNm4HlBCjS4GzuBdrVNdnMXhRNQ",
+  authDomain: "mafroshaty.firebaseapp.com",
+  databaseURL: "https://mafroshaty-default-rtdb.firebaseio.com",
+  projectId: "mafroshaty",
+  storageBucket: "mafroshaty.firebasestorage.app",
+  messagingSenderId: "933051451932",
+  appId: "1:933051451932:web:f694fa37b7548e0b746dd9"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ===== STATE =====
+let brands={}, products={}, marketers={}, orders={};
+let editColors=[], currentTab='overview', _selectedTheme='luxury';
+
+// ===== HELPERS =====
+function xe(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function gb(id){return brands[id]||{ar:'—',en:'—'}}
+function brandsArr(){return Object.entries(brands).map(([k,v])=>({...v,id:k}))}
+function productsArr(){return Object.entries(products).map(([k,v])=>({...v,id:k}))}
+function marketersArr(){return Object.entries(marketers).map(([k,v])=>({...v,id:k}))}
+function ordersArr(){return Object.entries(orders||{}).map(([k,v])=>({...v,id:k}))}
+
+function toast(msg,ok=true){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.color=ok===false?'var(--red)':'var(--tx)';
+  t.style.display='block';clearTimeout(t._x);t._x=setTimeout(()=>t.style.display='none',2400);
+}
+function updateBadges(){
+  document.getElementById('nb-brands').textContent=brandsArr().length;
+  document.getElementById('nb-products').textContent=productsArr().length;
+  document.getElementById('nb-marketers').textContent=marketersArr().length;
+  document.getElementById('nb-orders').textContent=ordersArr().filter(o=>o.status==='new').length;
+}
+
+// ===== REALTIME LISTENERS =====
+function initListeners(){
+  db.ref('brands').on('value',snap=>{
+    brands=snap.val()||{};updateBadges();
+    if(currentTab==='brands'||currentTab==='overview')render();
+  });
+  db.ref('products').on('value',snap=>{
+    products=snap.val()||{};updateBadges();
+    if(currentTab==='products'||currentTab==='overview')render();
+  });
+  db.ref('marketers').on('value',snap=>{
+    marketers=snap.val()||{};updateBadges();
+    if(currentTab==='marketers')render();
+  });
+  db.ref('orders').on('value',snap=>{
+    orders=snap.val()||{};updateBadges();
+    if(currentTab==='orders'||currentTab==='overview')render();
+  });
+}
+
+// ===== TABS =====
+const TABS={
+  overview:{title:'نظرة عامة',sub:'مرحباً، كل شيء تمام 👋',btn:''},
+  brands:{title:'الشركات',sub:'إدارة شركات المفروشات',btn:'<button class="btn-primary" onclick="openBrand(-1)">＋ شركة جديدة</button>'},
+  products:{title:'المنتجات',sub:'إدارة كتالوج المنتجات',btn:'<button class="btn-primary" onclick="openProduct(-1)">＋ منتج جديد</button>'},
+  marketers:{title:'المسوقون',sub:'إدارة شبكة المسوقين',btn:'<button class="btn-primary" onclick="openMarketer(-1)">＋ مسوق جديد</button>'},
+  orders:{title:'الطلبات',sub:'متابعة طلبات العملاء',btn:''},
+};
+function goTab(id,el){
+  currentTab=id;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('on'));
+  if(el)el.classList.add('on');
+  const t=TABS[id];
+  document.getElementById('topbar-title').textContent=t.title;
+  document.getElementById('topbar-sub').textContent=t.sub;
+  document.getElementById('topbar-acts').innerHTML=t.btn;
+  render();
+}
+function render(){
+  const c=document.getElementById('content');
+  if(currentTab==='overview')c.innerHTML=renderOverview();
+  else if(currentTab==='brands')c.innerHTML=renderBrands();
+  else if(currentTab==='products')c.innerHTML=renderProducts();
+  else if(currentTab==='marketers')c.innerHTML=renderMarketers();
+  else if(currentTab==='orders')c.innerHTML=renderOrders();
+}
+
+function statusBadge(s){
+  if(s==='new')return'<span class="badge badge-pending">جديد</span>';
+  if(s==='confirmed')return'<span class="badge badge-active">مؤكد</span>';
+  if(s==='delivered')return'<span class="badge badge-active">مسلّم</span>';
+  return'<span class="badge badge-suspended">ملغي</span>';
+}
+
+// ===== OVERVIEW =====
+function renderOverview(){
+  const pa=productsArr(),ma=marketersArr(),oa=ordersArr();
+  const newO=oa.filter(o=>o.status==='new').length;
+  return`
+  <div class="stats-row">
+    <div class="stat-card" onclick="goTab('brands',document.getElementById('nav-brands'))">
+      <div class="stat-icon">🏢</div><div class="stat-label">الشركات</div>
+      <div class="stat-val">${brandsArr().length}</div>
+      <div class="stat-change">${brandsArr().filter(b=>b.status==='active').length} نشطة</div>
+    </div>
+    <div class="stat-card" onclick="goTab('products',document.getElementById('nav-products'))">
+      <div class="stat-icon">🛋️</div><div class="stat-label">المنتجات</div>
+      <div class="stat-val">${pa.length}</div>
+      <div class="stat-change">${pa.filter(p=>p.status==='active').length} منتج نشط</div>
+    </div>
+    <div class="stat-card" onclick="goTab('marketers',document.getElementById('nav-marketers'))">
+      <div class="stat-icon">👤</div><div class="stat-label">المسوقون النشطون</div>
+      <div class="stat-val">${ma.filter(m=>m.status==='active').length}</div>
+      <div class="stat-change">من إجمالي ${ma.length}</div>
+    </div>
+    <div class="stat-card" onclick="goTab('orders',document.getElementById('nav-orders'))">
+      <div class="stat-icon">📦</div><div class="stat-label">طلبات جديدة</div>
+      <div class="stat-val" style="color:${newO>0?'var(--gold)':'var(--tx)'}">${newO}</div>
+      <div class="stat-change" style="color:${newO>0?'var(--red)':'var(--green)'}">⚡ ${newO>0?'تحتاج متابعة':'لا طلبات معلقة'}</div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-hd"><div class="section-title">⚡ آخر الطلبات</div><button class="btn-ghost" onclick="goTab('orders',document.getElementById('nav-orders'))">عرض الكل</button></div>
+    <table class="tbl">
+      <tr><th>المنتج</th><th>اللون</th><th>المسوق</th><th>السعر</th><th>الحالة</th><th>التاريخ</th></tr>
+      ${oa.length===0?`<tr><td colspan="6" class="empty">لا توجد طلبات بعد</td></tr>`:
+        oa.slice(-5).reverse().map(o=>`<tr>
+          <td><div class="tbl-name">${xe(o.product)}</div></td>
+          <td>${xe(o.color)}</td><td>${xe(o.marketer)}</td>
+          <td><span style="color:var(--gold);font-weight:800">${o.price} KWD</span></td>
+          <td>${statusBadge(o.status)}</td>
+          <td style="color:var(--mt)">${xe(o.date)}</td>
+        </tr>`).join('')}
+    </table>
+  </div>`;
+}
+
+// ===== BRANDS =====
+function commLabel(b){
+  if(b.commType==='fixed')return`${b.commFixed} KWD`;
+  if(b.commType==='both')return`${b.commission}% + ${b.commFixed} KWD`;
+  return`${b.commission||10}%`;
+}
+function renderBrands(){
+  const ba=brandsArr();
+  if(!ba.length)return`<div class="section"><div class="section-hd"><div class="section-title">🏢 الشركات <span class="section-count">0</span></div></div><div class="empty">لا توجد شركات — أضف أول شركة!</div></div>`;
+  return`<div class="section">
+    <div class="section-hd"><div class="section-title">🏢 الشركات <span class="section-count">${ba.length}</span></div></div>
+    <table class="tbl">
+      <tr><th></th><th>الشركة</th><th>واتساب</th><th>العمولة</th><th>الحالة</th><th>إجراءات</th></tr>
+      ${ba.map(b=>`<tr>
+        <td>${b.logo?`<img src="${xe(b.logo)}" style="width:36px;height:36px;border-radius:8px;object-fit:cover;border:1px solid var(--bd)">`:`<div class="tbl-emoji" style="font-size:13px;font-weight:800;color:var(--gold)">${xe((b.ar||'؟')[0])}</div>`}</td>
+        <td><div class="tbl-name">${xe(b.ar)}</div><div class="tbl-sub">${xe(b.en)}</div></td>
+        <td style="direction:ltr;font-size:11px;color:var(--mt)">${xe(b.wa||'—')}</td>
+        <td><span class="commission-tag">${commLabel(b)}</span></td>
+        <td>${b.status==='active'?'<span class="badge badge-active">نشط</span>':'<span class="badge badge-suspended">موقوف</span>'}</td>
+        <td><div class="actions">
+          <button class="act-btn act-edit" onclick="openBrand('${b.id}')">تعديل</button>
+          <button class="act-btn act-del" onclick="delBrand('${b.id}')">حذف</button>
+        </div></td>
+      </tr>`).join('')}
+    </table>
+  </div>`;
+}
+function openBrand(id){
+  const isNew=id===-1;
+  const b=isNew?{ar:'',en:'',wa:'',logo:'',commission:10,commFixed:0,commType:'percent',status:'active'}:{...brands[id]};
+  document.getElementById('modalTitle').textContent=isNew?'+ إضافة شركة جديدة':'تعديل: '+b.ar;
+  document.getElementById('modalBody').innerHTML=`
+    <div class="modal-body">
+      <div class="form-row">
+        <label class="form-label">لوجو الشركة</label>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div id="b-logo-preview" style="width:64px;height:64px;border-radius:10px;border:1.5px solid var(--bd);background:var(--bg3);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">${b.logo?`<img src="${xe(b.logo)}" style="width:100%;height:100%;object-fit:cover">`:'🏢'}</div>
+          <div style="flex:1">
+            <button type="button" style="width:100%;padding:8px;border-radius:7px;background:var(--bg3);border:1.5px dashed var(--bd);color:var(--mt);font-size:12px;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif;margin-bottom:6px" onclick="document.getElementById('b-logo-file').click()">📁 رفع لوجو</button>
+            <input class="form-input" id="b-logo-url" value="${xe(b.logo||'')}" placeholder="أو الصق رابط اللوجو" style="direction:ltr;font-size:11px" oninput="previewBrandLogo(this.value)">
+          </div>
+          <input type="file" id="b-logo-file" accept="image/*" style="display:none" onchange="loadBrandLogoFile(this)">
+        </div>
+      </div>
+      <div class="form-2">
+        <div class="form-row"><label class="form-label">الاسم بالعربي</label><input class="form-input" id="b-ar" value="${xe(b.ar||'')}" placeholder="ريفيرا"></div>
+        <div class="form-row"><label class="form-label">English Name</label><input class="form-input" id="b-en" value="${xe(b.en||'')}" placeholder="Riviera" style="direction:ltr"></div>
+      </div>
+      <div class="form-row"><label class="form-label">رقم واتساب</label><input class="form-input" id="b-wa" value="${xe(b.wa||'')}" placeholder="9651xxxxxxx" style="direction:ltr"></div>
+      <div class="form-row">
+        <label class="form-label">نوع العمولة الافتراضية</label>
+        <select class="form-select" id="b-comm-type" onchange="toggleCommFields()" style="margin-bottom:8px">
+          <option value="percent"${(b.commType||'percent')==='percent'?' selected':''}>نسبة % فقط</option>
+          <option value="fixed"${b.commType==='fixed'?' selected':''}>مبلغ ثابت (KWD) فقط</option>
+          <option value="both"${b.commType==='both'?' selected':''}>نسبة % + مبلغ ثابت معاً</option>
+        </select>
+        <div id="comm-fields" style="display:grid;gap:8px">
+          <div id="cf-percent" style="display:${b.commType==='fixed'?'none':'block'}">
+            <label class="form-label" style="margin-bottom:4px">النسبة %</label>
+            <input class="form-input" id="b-comm" type="number" value="${b.commission||10}" min="0" max="100" step="0.5" style="direction:ltr">
+          </div>
+          <div id="cf-fixed" style="display:${(b.commType==='percent'||!b.commType)?'none':'block'}">
+            <label class="form-label" style="margin-bottom:4px">المبلغ الثابت (KWD)</label>
+            <input class="form-input" id="b-comm-fixed" type="number" value="${b.commFixed||0}" min="0" step="0.25" style="direction:ltr">
+          </div>
+        </div>
+      </div>
+      <div class="form-row"><label class="form-label">الحالة</label>
+        <select class="form-select" id="b-status">
+          <option value="active"${b.status==='active'?' selected':''}>نشط</option>
+          <option value="suspended"${b.status==='suspended'?' selected':''}>موقوف</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      ${!isNew?`<button class="btn-danger" onclick="delBrand('${id}');closeModal()">حذف</button>`:''}
+      <button class="btn-ghost" onclick="closeModal()">إلغاء</button>
+      <button class="btn-primary" onclick="saveBrand(${isNew?'null':`'${id}'`})">${isNew?'إضافة':'حفظ'}</button>
+    </div>`;
+  openModal();
+}
+function saveBrand(id){
+  const ar=document.getElementById('b-ar').value.trim();
+  const en=document.getElementById('b-en').value.trim();
+  if(!ar||!en){toast('أدخل الاسمين',false);return;}
+  const commType=document.getElementById('b-comm-type').value;
+  const obj={
+    ar,en,logo:document.getElementById('b-logo-url').value.trim(),
+    wa:document.getElementById('b-wa').value.trim(),commType,
+    commission:Number(document.getElementById('b-comm')?.value)||10,
+    commFixed:Number(document.getElementById('b-comm-fixed')?.value)||0,
+    status:document.getElementById('b-status').value
+  };
+  const p=id?db.ref('brands/'+id).update(obj):db.ref('brands').push(obj);
+  p.then(()=>{closeModal();toast(id?'تم التعديل ✓':'تمت الإضافة ✓');}).catch(e=>toast('خطأ: '+e.message,false));
+}
+function delBrand(id){
+  if(!confirm('حذف الشركة نهائياً؟'))return;
+  db.ref('brands/'+id).remove().then(()=>toast('تم الحذف')).catch(e=>toast('خطأ: '+e.message,false));
+}
+function toggleCommFields(){
+  const t=document.getElementById('b-comm-type').value;
+  document.getElementById('cf-percent').style.display=t==='fixed'?'none':'block';
+  document.getElementById('cf-fixed').style.display=t==='percent'?'none':'block';
+}
+function previewBrandLogo(url){const el=document.getElementById('b-logo-preview');if(el)el.innerHTML=url?`<img src="${url}" style="width:100%;height:100%;object-fit:cover">`:'🏢';}
+function loadBrandLogoFile(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{document.getElementById('b-logo-url').value=e.target.result;previewBrandLogo(e.target.result);};r.readAsDataURL(f);}
+
+// ===== PRODUCTS =====
+const ALL_SIZES=[
+  {id:'king',ar:'كينج — نفرين',en:'King Size'},
+  {id:'queen',ar:'كويين — نفر ونص',en:'Queen Size'},
+  {id:'single',ar:'مفرد',en:'Single Size'},
+];
+function renderProducts(){
+  const pa=productsArr();
+  if(!pa.length)return`<div class="section"><div class="section-hd"><div class="section-title">🛋️ المنتجات <span class="section-count">0</span></div></div><div class="empty">لا توجد منتجات — أضف أول منتج!</div></div>`;
+  return`<div class="section">
+    <div class="section-hd"><div class="section-title">🛋️ المنتجات <span class="section-count">${pa.length}</span></div></div>
+    <table class="tbl">
+      <tr><th></th><th>المنتج</th><th>الشركة</th><th>السعر</th><th>المقاسات</th><th>الألوان</th><th>الحالة</th><th>إجراءات</th></tr>
+      ${pa.map(p=>`<tr>
+        <td><div class="tbl-emoji">${p.emoji||'🛋️'}</div></td>
+        <td><div class="tbl-name">${xe(p.nameAr)}</div><div class="tbl-sub">${xe(p.nameEn)}</div></td>
+        <td>${xe(gb(p.brand_id||p.brand).ar)}</td>
+        <td><span style="color:var(--gold);font-weight:800">${p.price}</span> <span style="color:var(--mt);font-size:10px">KWD</span>${p.oldPrice?`<div class="tbl-sub" style="text-decoration:line-through">${p.oldPrice}</div>`:''}</td>
+        <td><div style="display:flex;gap:3px;flex-wrap:wrap">${(p.sizes||[]).map(s=>{const si=ALL_SIZES.find(x=>x.id===s);return si?`<span style="font-size:9px;padding:1px 6px;border-radius:10px;background:var(--bg3);border:1px solid var(--bd);color:var(--mt)">${si.en}</span>`:''}).join('')||'<span style="color:var(--mt)">—</span>'}</div></td>
+        <td><div class="color-dots">${Object.values(p.colors||{}).map(c=>`<div class="color-dot" style="background:${c.hex}"></div>`).join('')}</div></td>
+        <td>${p.status==='active'?'<span class="badge badge-active">نشط</span>':'<span class="badge badge-suspended">مخفي</span>'}</td>
+        <td><div class="actions">
+          <button class="act-btn act-edit" onclick="openProduct('${p.id}')">تعديل</button>
+          <button class="act-btn act-del" onclick="delProduct('${p.id}')">حذف</button>
+        </div></td>
+      </tr>`).join('')}
+    </table>
+  </div>`;
+}
+function openProduct(id){
+  const isNew=id===-1;
+  const p=isNew?{brand_id:'',nameAr:'',nameEn:'',descAr:'',descEn:'',price:'',oldPrice:'',badge:'',emoji:'🛋️',status:'active',colors:{},sizes:[]}:{...products[id]};
+  const ba=brandsArr();
+  editColors=Object.values(p.colors||{}).length
+    ?Object.entries(p.colors).map(([k,v])=>({...v,_key:k}))
+    :[{ar:'لون 1',en:'Color 1',hex:'#8B5E3C',imgs:[]}];
+  document.getElementById('modalTitle').textContent=isNew?'+ إضافة منتج جديد':'تعديل: '+p.nameAr;
+  document.getElementById('modalBody').innerHTML=`
+    <div class="modal-body">
+      <div style="font-size:11px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bd)">📋 المعلومات الأساسية</div>
+      <div class="form-2">
+        <div class="form-row"><label class="form-label">الاسم بالعربي</label><input class="form-input" id="p-ar" value="${xe(p.nameAr||'')}" placeholder="طقم غرفة نوم"></div>
+        <div class="form-row"><label class="form-label">English Name</label><input class="form-input" id="p-en" value="${xe(p.nameEn||'')}" placeholder="Bedroom Set" style="direction:ltr"></div>
+      </div>
+      <div class="form-row"><label class="form-label">الشركة</label>
+        <select class="form-select" id="p-brand">${ba.map(b=>`<option value="${b.id}"${(p.brand_id||p.brand)===b.id?' selected':''}>${xe(b.ar)}</option>`).join('')}</select>
+      </div>
+      <div class="form-2">
+        <div class="form-row"><label class="form-label">السعر KWD</label><input class="form-input" id="p-price" type="number" value="${p.price||''}" style="direction:ltr"></div>
+        <div class="form-row"><label class="form-label">السعر القديم</label><input class="form-input" id="p-old" type="number" value="${p.oldPrice||''}" style="direction:ltr"></div>
+      </div>
+      <div class="form-2">
+        <div class="form-row"><label class="form-label">الإيموجي</label><input class="form-input" id="p-emoji" value="${xe(p.emoji||'🛋️')}" style="direction:ltr;font-size:22px;text-align:center"></div>
+        <div class="form-row"><label class="form-label">Badge</label>
+          <select class="form-select" id="p-badge">
+            <option value=""${!p.badge?' selected':''}>بدون</option>
+            <option value="new"${p.badge==='new'?' selected':''}>جديد</option>
+            <option value="sale"${p.badge==='sale'?' selected':''}>خصم</option>
+          </select>
+        </div>
+      </div>
+      <div style="font-size:11px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--bd)">📝 وصف الطقم</div>
+      <div class="form-row"><label class="form-label">الوصف بالعربي</label><textarea class="form-input" id="p-desc-ar" rows="3" style="resize:vertical;line-height:1.6">${xe(p.descAr||'')}</textarea></div>
+      <div class="form-row"><label class="form-label">Description in English</label><textarea class="form-input" id="p-desc-en" rows="3" style="resize:vertical;direction:ltr;line-height:1.6">${xe(p.descEn||'')}</textarea></div>
+      <div style="font-size:11px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--bd)">📐 المقاسات</div>
+      <div style="display:flex;flex-direction:column;gap:7px;padding:10px;background:var(--bg3);border-radius:8px;border:1px solid var(--bd)">
+        ${ALL_SIZES.map(s=>`
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 10px;border-radius:7px;border:1.5px solid ${(p.sizes||[]).includes(s.id)?'var(--gold)':'var(--bd)'};background:${(p.sizes||[]).includes(s.id)?'var(--gold-dim)':'var(--bg2)'}" id="size-lbl-${s.id}" onclick="toggleSizeLbl('${s.id}')">
+            <input type="checkbox" id="size-${s.id}" ${(p.sizes||[]).includes(s.id)?'checked':''} style="accent-color:var(--gold);width:15px;height:15px" onclick="event.stopPropagation();toggleSizeLbl('${s.id}')">
+            <div><div style="font-size:13px;font-weight:700;color:var(--tx)">${xe(s.ar)}</div><div style="font-size:10px;color:var(--mt)">${xe(s.en)}</div></div>
+          </label>`).join('')}
+      </div>
+      <div style="font-size:11px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--bd)">🎨 الألوان والصور</div>
+      <div class="colors-editor" id="colors-wrap">
+        <div id="colors-list"></div>
+        <button class="add-color-btn" onclick="addColor()">+ إضافة لون</button>
+      </div>
+      <div class="form-row" style="margin-top:14px"><label class="form-label">الحالة</label>
+        <select class="form-select" id="p-status">
+          <option value="active"${p.status==='active'?' selected':''}>نشط</option>
+          <option value="hidden"${p.status==='hidden'?' selected':''}>مخفي</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      ${!isNew?`<button class="btn-danger" onclick="delProduct('${id}');closeModal()">حذف</button>`:''}
+      <button class="btn-ghost" onclick="closeModal()">إلغاء</button>
+      <button class="btn-primary" onclick="saveProduct(${isNew?'null':`'${id}'`})">${isNew?'إضافة المنتج':'حفظ التعديلات'}</button>
+    </div>`;
+  openModal();renderColors();
+}
+function toggleSizeLbl(id){
+  const cb=document.getElementById('size-'+id),lbl=document.getElementById('size-lbl-'+id);
+  cb.checked=!cb.checked;
+  lbl.style.borderColor=cb.checked?'var(--gold)':'var(--bd)';
+  lbl.style.background=cb.checked?'var(--gold-dim)':'var(--bg2)';
+}
+function renderColors(){
+  const el=document.getElementById('colors-list');if(!el)return;
+  el.innerHTML=editColors.map((c,i)=>`
+    <div class="color-block">
+      <div class="color-block-hd">
+        <div class="color-preview" style="background:${c.hex}" onclick="document.getElementById('cp${i}').click()"></div>
+        <input type="color" id="cp${i}" value="${c.hex}" style="display:none" oninput="editColors[${i}].hex=this.value;document.querySelectorAll('.color-preview')[${i}].style.background=this.value">
+        <input class="cin" value="${xe(c.ar||'')}" placeholder="اسم اللون بالعربي" oninput="editColors[${i}].ar=this.value">
+        <input class="cin-sm" value="${xe(c.en||'')}" placeholder="EN" oninput="editColors[${i}].en=this.value">
+        <button class="color-remove" onclick="editColors.splice(${i},1);renderColors()">🗑️</button>
+      </div>
+      <div class="color-imgs-label">صور هذا اللون (حتى 8 صور)</div>
+      <div class="color-imgs-grid" id="imgs-grid-${i}">
+        ${(c.imgs||[]).map((url,j)=>`<div class="color-img-thumb"><img src="${xe(url)}" alt="" onerror="this.src=''"><button class="color-img-del" onclick="removeColorImg(${i},${j})">✕</button></div>`).join('')}
+        ${(c.imgs||[]).length<8?`<button class="color-img-add" onclick="addColorImg(${i})">+</button>`:''}
+      </div>
+      <input type="url" class="cin" id="img-url-${i}" placeholder="أو الصق رابط صورة (https://...)" style="direction:ltr;margin-top:4px;font-size:11px" onkeydown="if(event.key==='Enter'){pasteImgUrl(${i});event.preventDefault()}">
+      <button style="margin-top:5px;padding:4px 10px;border-radius:6px;background:var(--gold-dim);color:var(--gold);border:1px solid rgba(201,169,110,.3);font-size:11px;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif" onclick="pasteImgUrl(${i})">+ إضافة الرابط</button>
+    </div>`).join('');
+}
+function addColor(){editColors.push({ar:'لون جديد',en:'New Color',hex:'#c8a97a',imgs:[]});renderColors();}
+function addColorImg(ci){
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.multiple=true;
+  inp.onchange=e=>{
+    const files=[...e.target.files];const c=editColors[ci];if(!c.imgs)c.imgs=[];
+    files.slice(0,8-c.imgs.length).forEach(f=>{
+      const r=new FileReader();r.onload=ev=>{c.imgs.push(ev.target.result);renderColors();};r.readAsDataURL(f);
+    });
+  };inp.click();
+}
+function pasteImgUrl(ci){
+  const inp=document.getElementById('img-url-'+ci),url=inp.value.trim();
+  if(!url){toast('أدخل رابط الصورة',false);return;}
+  const c=editColors[ci];if(!c.imgs)c.imgs=[];
+  if(c.imgs.length>=8){toast('الحد الأقصى 8 صور',false);return;}
+  c.imgs.push(url);inp.value='';renderColors();
+}
+function removeColorImg(ci,ji){editColors[ci].imgs.splice(ji,1);renderColors();}
+function saveProduct(id){
+  const ar=document.getElementById('p-ar').value.trim();
+  const en=document.getElementById('p-en').value.trim();
+  const price=Number(document.getElementById('p-price').value);
+  if(!ar||!en||!price){toast('أدخل الاسم والسعر',false);return;}
+  const sizes=ALL_SIZES.map(s=>s.id).filter(sid=>document.getElementById('size-'+sid)?.checked);
+  const colorsObj={};
+  editColors.forEach((c,i)=>{const key=c._key||('c'+(i+1));colorsObj[key]={ar:c.ar||'',en:c.en||'',hex:c.hex,imgs:c.imgs||[]};});
+  const oldPrice=Number(document.getElementById('p-old').value);
+  const obj={
+    brand_id:document.getElementById('p-brand').value,
+    nameAr:ar,nameEn:en,
+    descAr:document.getElementById('p-desc-ar').value.trim(),
+    descEn:document.getElementById('p-desc-en').value.trim(),
+    price,oldPrice:oldPrice||null,currency:'KWD',
+    badge:document.getElementById('p-badge').value,
+    emoji:document.getElementById('p-emoji').value||'🛋️',
+    status:document.getElementById('p-status').value,
+    sizes,colors:colorsObj
+  };
+  const p=id?db.ref('products/'+id).update(obj):db.ref('products').push(obj);
+  p.then(()=>{closeModal();toast(id?'تم التعديل ✓':'تمت الإضافة ✓');}).catch(e=>toast('خطأ: '+e.message,false));
+}
+function delProduct(id){
+  if(!confirm('حذف المنتج نهائياً؟'))return;
+  db.ref('products/'+id).remove().then(()=>toast('تم الحذف')).catch(e=>toast('خطأ: '+e.message,false));
+}
+
+// ===== MARKETER PRODUCTS PICKER (by brand) =====
+function renderMarketerProds(pa, oldProducts, excluded){
+  const wrap = document.getElementById('prod-pick-wrap');
+  if(!wrap) return;
+  // group by brand
+  const byBrand = {};
+  pa.forEach(p=>{
+    const bid = p.brand_id||p.brand||'other';
+    if(!byBrand[bid]) byBrand[bid]=[];
+    byBrand[bid].push(p);
+  });
+  const ba = brandsArr();
+  let html = '';
+  Object.entries(byBrand).forEach(([bid, prods])=>{
+    const brand = gb(bid);
+    const allSel = prods.every(p=>!excluded.includes(p.id));
+    html += `<div style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--bg);border-radius:8px 8px 0 0;border:1px solid var(--bd);border-bottom:none">
+        <div style="font-size:12px;font-weight:800;color:var(--gold)">${xe(brand.ar)}</div>
+        <div style="display:flex;gap:5px">
+          <button type="button" style="padding:2px 8px;border-radius:5px;background:var(--gold-dim);color:var(--gold);border:1px solid rgba(201,169,110,.3);font-size:10px;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif" onclick="toggleBrandProds('${bid}',true)">كل الشركة</button>
+          <button type="button" style="padding:2px 8px;border-radius:5px;background:var(--bg3);color:var(--mt);border:1px solid var(--bd);font-size:10px;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif" onclick="toggleBrandProds('${bid}',false)">إخفاء الكل</button>
+        </div>
+      </div>
+      <div class="prod-grid" style="border:1px solid var(--bd);border-radius:0 0 8px 8px;padding:8px;gap:6px;background:var(--bg3)">
+        ${prods.map(p=>`<div class="prod-check${excluded.includes(p.id)?'':' sel'}" onclick="this.classList.toggle('sel')" data-pid="${p.id}" data-bid="${bid}">
+          <span style="font-size:16px">${p.emoji||'🛋️'}</span>
+          <div class="prod-check-lbl">${xe(p.nameAr)}<div style="font-size:10px;color:var(--mt)">${p.price} KWD</div></div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  });
+  if(!html) html = '<div style="color:var(--mt);font-size:12px;padding:10px">لا توجد منتجات نشطة بعد</div>';
+  wrap.innerHTML = html;
+}
+function toggleBrandProds(bid, show){
+  document.querySelectorAll(`#prod-pick-wrap .prod-check[data-bid="${bid}"]`).forEach(el=>{
+    if(show) el.classList.add('sel');
+    else el.classList.remove('sel');
+  });
+}
+
+// ===== MARKETERS =====
+const THEMES=[
+  {id:'luxury',label:'فاخر',primary:'#b8934a'},
+  {id:'modern',label:'مودرن',primary:'#2563eb'},
+  {id:'classic',label:'كلاسيك',primary:'#7c3f2b'},
+  {id:'dark',label:'داكن',primary:'#c9a96e'},
+  {id:'custom',label:'مخصص ✏️',primary:''},
+];
+function renderMarketers(){
+  const ma=marketersArr();
+  if(!ma.length)return`<div class="section"><div class="section-hd"><div class="section-title">👤 المسوقون <span class="section-count">0</span></div></div><div class="empty">لا يوجد مسوقون — أضف أول مسوق!</div></div>`;
+  return`<div class="section">
+    <div class="section-hd"><div class="section-title">👤 المسوقون <span class="section-count">${ma.length}</span></div></div>
+    <table class="tbl">
+      <tr><th></th><th>المسوق</th><th>رابط المتجر</th><th>الثيم</th><th>المنتجات</th><th>الأرباح</th><th>الحالة</th><th>إجراءات</th></tr>
+      ${ma.map(m=>`<tr>
+        <td>${m.logo?`<img src="${xe(m.logo)}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1.5px solid var(--bd)">`:`<div style="width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1.5px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--gold)">${xe((m.name||'م')[0])}</div>`}</td>
+        <td><div class="tbl-name">${xe(m.name)}</div><div class="tbl-sub">${xe(m.phone||'')}</div></td>
+        <td><span style="color:var(--blue);font-size:11px">${xe(m.slug)}.mafroshatي.com</span></td>
+        <td><span style="font-size:11px;color:var(--mt)">${THEMES.find(t=>t.id===(m.theme||'luxury'))?.label||'فاخر'}</span></td>
+        <td><span class="commission-tag">${(m.products||[]).length} منتج</span></td>
+        <td><span style="color:var(--green);font-weight:800">${m.earnings||0} KWD</span></td>
+        <td>${m.status==='active'?'<span class="badge badge-active">نشط</span>':m.status==='pending'?'<span class="badge badge-pending">معلق</span>':'<span class="badge badge-suspended">محظور</span>'}</td>
+        <td><div class="actions">
+          <button class="act-btn act-edit" onclick="openMarketer('${m.id}')">تعديل</button>
+          <button class="act-btn act-del" onclick="delMarketer('${m.id}')">حذف</button>
+        </div></td>
+      </tr>`).join('')}
+    </table>
+  </div>`;
+}
+function openMarketer(id){
+  const isNew=id===-1;
+  const m=isNew?{name:'',slug:'',phone:'',products:[],earnings:0,status:'active',logo:'',banner:'',theme:'luxury',colorPrimary:'',colorAccent:'',colorBg:'',welcomeAr:'',welcomeEn:'',waNumber:''}:{...marketers[id]};
+  const pa=productsArr();
+  _selectedTheme=m.theme||'luxury';
+  document.getElementById('modalTitle').textContent=isNew?'+ إضافة مسوق':'تعديل: '+m.name;
+  document.getElementById('modalBody').innerHTML=`
+    <div class="modal-body">
+      <div style="font-size:11px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bd)">📋 المعلومات الأساسية</div>
+      <div class="form-2">
+        <div class="form-row"><label class="form-label">الاسم</label><input class="form-input" id="m-name" value="${xe(m.name||'')}"></div>
+        <div class="form-row"><label class="form-label">رقم الهاتف</label><input class="form-input" id="m-phone" value="${xe(m.phone||'')}" style="direction:ltr"></div>
+      </div>
+      <div class="form-row"><label class="form-label">رابط المتجر (Slug)</label>
+        <div style="display:flex;align-items:center">
+          <input class="form-input" id="m-slug" value="${xe(m.slug||'')}" placeholder="hassan" style="direction:ltr;border-radius:8px 0 0 8px">
+          <span style="padding:9px 10px;background:var(--bg);border:1.5px solid var(--bd);border-right:none;color:var(--mt);font-size:11px;border-radius:0 8px 8px 0;white-space:nowrap">.mafroshatي.com</span>
+        </div>
+      </div>
+      <div class="form-row"><label class="form-label">رقم واتساب المسوق</label><input class="form-input" id="m-wa" value="${xe(m.waNumber||'')}" style="direction:ltr"></div>
+      <div class="form-row"><label class="form-label">الحالة</label>
+        <select class="form-select" id="m-status">
+          <option value="active"${m.status==='active'?' selected':''}>نشط</option>
+          <option value="pending"${m.status==='pending'?' selected':''}>معلق</option>
+          <option value="banned"${m.status==='banned'?' selected':''}>محظور</option>
+        </select>
+      </div>
+      <div style="font-size:11px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--bd)">🎨 تخصيص المتجر</div>
+      <div class="form-2">
+        <div class="form-row">
+          <label class="form-label">لوجو المتجر</label>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+            <div id="m-logo-prev" style="width:64px;height:64px;border-radius:50%;border:1.5px solid var(--bd);background:var(--bg3);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:22px">${m.logo?`<img src="${xe(m.logo)}" style="width:100%;height:100%;object-fit:cover">`:'👤'}</div>
+            <button type="button" style="padding:5px 12px;border-radius:6px;background:var(--bg3);border:1px dashed var(--bd);color:var(--mt);font-size:11px;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif" onclick="document.getElementById('m-logo-file').click()">📁 رفع</button>
+            <input type="file" id="m-logo-file" accept="image/*" style="display:none" onchange="loadImg(this,'m-logo-url','m-logo-prev',true)">
+            <input class="form-input" id="m-logo-url" value="${xe(m.logo||'')}" placeholder="أو رابط" style="direction:ltr;font-size:10px" oninput="previewImg(this.value,'m-logo-prev',true)">
+          </div>
+        </div>
+        <div class="form-row">
+          <label class="form-label">بانر المتجر</label>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+            <div id="m-banner-prev" style="width:100%;height:64px;border-radius:8px;border:1.5px solid var(--bd);background:var(--bg3);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:22px">${m.banner?`<img src="${xe(m.banner)}" style="width:100%;height:100%;object-fit:cover">`:'🖼️'}</div>
+            <button type="button" style="padding:5px 12px;border-radius:6px;background:var(--bg3);border:1px dashed var(--bd);color:var(--mt);font-size:11px;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif" onclick="document.getElementById('m-banner-file').click()">📁 رفع</button>
+            <input type="file" id="m-banner-file" accept="image/*" style="display:none" onchange="loadImg(this,'m-banner-url','m-banner-prev',false)">
+            <input class="form-input" id="m-banner-url" value="${xe(m.banner||'')}" placeholder="أو رابط" style="direction:ltr;font-size:10px" oninput="previewImg(this.value,'m-banner-prev',false)">
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">ثيم المتجر</label>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px">
+          ${THEMES.map(t=>`<div onclick="selectTheme('${t.id}')" id="theme-opt-${t.id}" style="padding:8px 4px;border-radius:8px;border:2px solid ${_selectedTheme===t.id?'var(--gold)':'var(--bd)'};background:${_selectedTheme===t.id?'var(--gold-dim)':'var(--bg3)'};cursor:pointer;text-align:center">
+            <div style="width:24px;height:24px;border-radius:50%;background:${t.primary||'#555'};margin:0 auto 4px;border:1.5px solid rgba(255,255,255,.2)"></div>
+            <div style="font-size:10px;font-weight:700;color:var(--tx)">${t.label}</div>
+          </div>`).join('')}
+        </div>
+        <div id="custom-colors" style="display:${_selectedTheme==='custom'?'grid':'none'};grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px;background:var(--bg3);border-radius:8px;border:1px solid var(--bd)">
+          <div><label class="form-label" style="margin-bottom:4px">اللون الرئيسي</label><div style="display:flex;gap:5px;align-items:center"><input type="color" id="m-c-primary" value="${m.colorPrimary||'#b8934a'}" style="width:32px;height:32px;border:none;border-radius:6px;cursor:pointer"><input class="form-input" id="m-c-primary-hex" value="${m.colorPrimary||'#b8934a'}" style="direction:ltr;font-size:11px"></div></div>
+          <div><label class="form-label" style="margin-bottom:4px">لون النص</label><div style="display:flex;gap:5px;align-items:center"><input type="color" id="m-c-accent" value="${m.colorAccent||'#1c1c1c'}" style="width:32px;height:32px;border:none;border-radius:6px;cursor:pointer"><input class="form-input" id="m-c-accent-hex" value="${m.colorAccent||'#1c1c1c'}" style="direction:ltr;font-size:11px"></div></div>
+          <div><label class="form-label" style="margin-bottom:4px">لون الخلفية</label><div style="display:flex;gap:5px;align-items:center"><input type="color" id="m-c-bg" value="${m.colorBg||'#faf8f5'}" style="width:32px;height:32px;border:none;border-radius:6px;cursor:pointer"><input class="form-input" id="m-c-bg-hex" value="${m.colorBg||'#faf8f5'}" style="direction:ltr;font-size:11px"></div></div>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">رسالة ترحيب</label>
+        <input class="form-input" id="m-welcome-ar" value="${xe(m.welcomeAr||'')}" placeholder="مرحباً بك في متجري" style="margin-bottom:6px">
+        <input class="form-input" id="m-welcome-en" value="${xe(m.welcomeEn||'')}" placeholder="Welcome to my store" style="direction:ltr">
+      </div>
+      <div style="font-size:11px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--bd)">🛋️ المنتجات المتاحة</div>
+      <div style="font-size:12px;color:var(--mt);margin-bottom:10px;padding:8px 10px;background:var(--bg3);border-radius:8px;border:1px solid var(--bd);line-height:1.6">
+        💡 <strong style="color:var(--gold)">الافتراضي:</strong> كل المنتجات النشطة تظهر تلقائياً.
+        هنا تقدر <strong>تُخفي</strong> منتجات أو شركات بعينها من متجر هذا المسوق.
+      </div>
+      <div id="prod-pick-wrap"></div>
+      <script>renderMarketerProds(${JSON.stringify(pa)}, ${JSON.stringify(m.products||[])}, ${JSON.stringify(m.excluded||[])})<\/script>
+    </div>
+    <div class="modal-footer">
+      ${!isNew?`<button class="btn-danger" onclick="delMarketer('${id}');closeModal()">حذف</button>`:''}
+      <button class="btn-ghost" onclick="closeModal()">إلغاء</button>
+      <button class="btn-primary" onclick="saveMarketer(${isNew?'null':`'${id}'`})">${isNew?'إضافة':'حفظ'}</button>
+    </div>`;
+  openModal();
+}
+function selectTheme(id){
+  _selectedTheme=id;
+  THEMES.forEach(t=>{
+    const el=document.getElementById('theme-opt-'+t.id);
+    if(!el)return;
+    el.style.borderColor=t.id===id?'var(--gold)':'var(--bd)';
+    el.style.background=t.id===id?'var(--gold-dim)':'var(--bg3)';
+  });
+  document.getElementById('custom-colors').style.display=id==='custom'?'grid':'none';
+}
+function saveMarketer(id){
+  const name=document.getElementById('m-name').value.trim();
+  const slug=document.getElementById('m-slug').value.trim().toLowerCase();
+  if(!name||!slug){toast('أدخل الاسم والرابط',false);return;}
+  // جمع المنتجات المُخفاة (excluded) بدل المختارة
+  const excludedProds=[...document.querySelectorAll('#prod-pick-wrap .prod-check:not(.sel)')].map(el=>el.dataset.pid).filter(Boolean);
+  const theme=_selectedTheme||'luxury';
+  const isNew=!id||id==='null';
+  const obj={
+    name,slug,
+    phone:document.getElementById('m-phone').value.trim(),
+    waNumber:document.getElementById('m-wa').value.trim(),
+    logo:document.getElementById('m-logo-url').value.trim(),
+    banner:document.getElementById('m-banner-url').value.trim(),
+    theme,
+    colorPrimary:theme==='custom'?document.getElementById('m-c-primary').value:'',
+    colorAccent:theme==='custom'?document.getElementById('m-c-accent').value:'',
+    colorBg:theme==='custom'?document.getElementById('m-c-bg').value:'',
+    welcomeAr:document.getElementById('m-welcome-ar').value.trim(),
+    welcomeEn:document.getElementById('m-welcome-en').value.trim(),
+    excluded:excludedProds,
+    earnings:isNew?0:(marketers[id]?.earnings||0),
+    status:document.getElementById('m-status').value
+  };
+  const p=isNew?db.ref('marketers').push(obj):db.ref('marketers/'+id).update(obj);
+  p.then(()=>{closeModal();toast(isNew?'تمت إضافة المسوق ✓':'تم التعديل ✓');}).catch(e=>toast('خطأ: '+e.message,false));
+}
+function delMarketer(id){
+  if(!confirm('حذف المسوق نهائياً؟'))return;
+  db.ref('marketers/'+id).remove().then(()=>toast('تم الحذف')).catch(e=>toast('خطأ: '+e.message,false));
+}
+
+// ===== ORDERS =====
+function renderOrders(){
+  const oa=ordersArr();
+  return`<div class="section">
+    <div class="section-hd"><div class="section-title">📦 الطلبات <span class="section-count">${oa.length}</span></div></div>
+    <table class="tbl">
+      <tr><th>#</th><th>المنتج</th><th>اللون</th><th>المسوق</th><th>السعر</th><th>التاريخ</th><th>الحالة</th><th>إجراءات</th></tr>
+      ${oa.length===0?`<tr><td colspan="8" class="empty">لا توجد طلبات بعد</td></tr>`:
+        oa.reverse().map(o=>`<tr>
+          <td style="color:var(--mt);font-size:11px">#${String(o.id).slice(-4)}</td>
+          <td><div class="tbl-name">${xe(o.product)}</div></td>
+          <td>${xe(o.color)}</td><td>${xe(o.marketer)}</td>
+          <td><span style="color:var(--gold);font-weight:800">${o.price} KWD</span></td>
+          <td style="color:var(--mt);font-size:11px">${xe(o.date)}</td>
+          <td>${statusBadge(o.status)}</td>
+          <td><div class="actions">
+            <button class="act-btn act-edit" style="background:rgba(46,160,67,.1);color:var(--green);border:1px solid rgba(46,160,67,.2)" onclick="updateOrderStatus('${o.id}','confirmed')">تأكيد</button>
+            <button class="act-btn act-del" onclick="updateOrderStatus('${o.id}','cancelled')">إلغاء</button>
+          </div></td>
+        </tr>`).join('')}
+    </table>
+  </div>`;
+}
+function updateOrderStatus(id,status){
+  db.ref('orders/'+id).update({status})
+    .then(()=>toast('تم تحديث الطلب ✓'))
+    .catch(e=>toast('خطأ: '+e.message,false));
+}
+
+// ===== MODAL =====
+function openModal(){document.getElementById('modalBg').classList.add('open');}
+function closeModal(){document.getElementById('modalBg').classList.remove('open');}
+document.getElementById('modalBg').addEventListener('click',e=>{if(e.target===document.getElementById('modalBg'))closeModal();});
+
+// ===== IMAGE HELPERS =====
+function loadImg(inp,urlId,prevId,circle){
+  const f=inp.files[0];if(!f)return;
+  const r=new FileReader();r.onload=e=>{document.getElementById(urlId).value=e.target.result;previewImg(e.target.result,prevId,circle);};r.readAsDataURL(f);
+}
+function previewImg(url,prevId,circle){
+  const el=document.getElementById(prevId);if(!el)return;
+  el.innerHTML=url?`<img src="${url}" style="width:100%;height:100%;object-fit:cover">`:(circle?'👤':'🖼️');
+}
+
+// ===== INIT =====
+document.getElementById('content').innerHTML='<div class="empty" style="padding:60px;font-size:14px">⏳ جاري الاتصال بـ Firebase...</div>';
+initListeners();
+goTab('overview',document.getElementById('nav-overview'));
+</script>
+</body>
+</html>
