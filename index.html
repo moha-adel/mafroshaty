@@ -102,8 +102,8 @@ body{font-family:'Tajawal',sans-serif;background:var(--theme-bg);color:var(--dar
 .fmodal-imgs{position:relative;background:#f5f1eb}.fmodal-arrow{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.85);border:1px solid rgba(0,0,0,.1);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;z-index:2;backdrop-filter:blur(4px);transition:background .18s}.fmodal-arrow:hover{background:#fff}.fmodal-arrow-r{right:10px}.fmodal-arrow-l{left:10px}
 .fmodal-img-slider{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
 .fmodal-img-slider::-webkit-scrollbar{display:none}
-.fmodal-img-slide{min-width:100%;aspect-ratio:1/1;scroll-snap-align:start;display:flex;align-items:center;justify-content:center;font-size:72px;flex-shrink:0}
-.fmodal-img-slide img{width:100%;height:100%;object-fit:cover}
+.fmodal-img-slide{min-width:100%;height:280px;scroll-snap-align:start;display:flex;align-items:center;justify-content:center;font-size:72px;flex-shrink:0}
+.fmodal-img-slide img{width:100%;height:280px;object-fit:contain;background:#f5f1eb}
 .fmodal-img-dots{display:flex;justify-content:center;gap:5px;padding:7px;position:absolute;bottom:0;left:0;right:0}
 .fmodal-img-dot{width:6px;height:6px;border-radius:50%;background:rgba(0,0,0,.25);transition:background .2s;cursor:pointer}
 .fmodal-img-dot.on{background:var(--theme-primary);width:16px;border-radius:3px}
@@ -603,7 +603,14 @@ function openModal(pid){
         </div>
       </div>
       <div class="fmodal-nm-en" style="direction:ltr">${xe(isEn?p.nameAr:p.nameEn)}</div>
-      ${(p.descAr||p.descEn)?`<div class="fmodal-desc">${xe(isEn?p.descEn:p.descAr)}</div>`:''}
+      ${colors.length?`
+        <div class="fmodal-section-lbl" style="margin-top:10px"><span class="lar">اللون</span><span class="len" style="display:${isEn?'':'none'}">Color</span></div>
+        <div class="fmodal-colors">
+          ${colors.map((c,i)=>`<div class="fcolor-opt${i===ci?' sel':''}" onclick="pickColor('${pid}',${i},this)">
+            <div class="fcolor-swatch" style="background:${c.hex}"></div>
+            <div class="fcolor-nm"><span class="lar">${xe(c.ar||c.nameAr||'')}</span><span class="len" style="display:${isEn?'':'none'}">${xe(c.en||c.nameEn||'')}</span></div>
+          </div>`).join('')}
+        </div>`:''}
       ${(p.sizes||[]).length?`
         <div class="fmodal-section-lbl"><span class="lar">المقاس</span><span class="len" style="display:${isEn?'':'none'}">Size</span></div>
         <div class="fmodal-sizes" id="modal-sizes">
@@ -611,14 +618,7 @@ function openModal(pid){
             <span class="lar">${xe(gs(s).ar)}</span><span class="len" style="display:${isEn?'':'none'}">${xe(gs(s).en)}</span>
           </div>`).join('')}
         </div>`:''}
-      ${colors.length?`
-        <div class="fmodal-section-lbl"><span class="lar">اللون</span><span class="len" style="display:${isEn?'':'none'}">Color</span></div>
-        <div class="fmodal-colors">
-          ${colors.map((c,i)=>`<div class="fcolor-opt${i===ci?' sel':''}" onclick="pickColor('${pid}',${i},this)">
-            <div class="fcolor-swatch" style="background:${c.hex}"></div>
-            <div class="fcolor-nm"><span class="lar">${xe(c.ar||c.nameAr||'')}</span><span class="len" style="display:${isEn?'':'none'}">${xe(c.en||c.nameEn||'')}</span></div>
-          </div>`).join('')}
-        </div>`:''}
+      ${(p.descAr||p.descEn)?`<div class="fmodal-desc">${xe(isEn?p.descEn:p.descAr)}</div>`:''}
       <div class="fmodal-compare-row">
         <div class="fmodal-compare-lbl">⚖️ <span class="lar">أضف للمقارنة</span><span class="len" style="display:${isEn?'':'none'}">Add to Compare</span></div>
         <button class="compare-toggle${compareList.includes(pid)?' on':''}" id="cmp-toggle-${pid}" onclick="toggleCompare('${pid}')"></button>
