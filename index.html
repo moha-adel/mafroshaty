@@ -399,7 +399,9 @@ function initStore(){
   document.getElementById('prodGrid').innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--gray2);font-size:13px">⏳ جاري تحميل المنتجات...</div>`;
 
   // جيب كل المسوقين وفلتر على الكلاينت (أضمن من orderByChild)
+  console.log('🔥 Connecting to Firebase...');
   db.ref('marketers').once('value', snap=>{
+    console.log('✅ Marketers loaded:', snap.val());
     const data=snap.val()||{};
     const entries=Object.entries(data);
     if(!entries.length){
@@ -421,6 +423,7 @@ function initStore(){
       document.getElementById('prodGrid').innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--gray2)">⚠️ المتجر غير موجود</div>`;
       return;
     }
+    console.log('👤 Loading marketer:', found.key, found.val);
     loadMarketer(found.key, found.val);
   });
 }
@@ -441,6 +444,8 @@ function loadMarketer(marketerKey, marketerData){
       db.ref('brands').once('value'),
       db.ref('products').once('value')
     ]).then(([bSnap, pSnap])=>{
+      console.log('📦 Brands:', bSnap.val());
+      console.log('🛋️ Products:', pSnap.val());
       BRANDS=bSnap.val()||{};
       const allProds=pSnap.val()||{};
       // كل المنتجات النشطة — ماعدا اللي المسوق خفاها
