@@ -588,10 +588,9 @@ function openModal(pid){
           ?imgs.map(url=>`<div class="fmodal-img-slide"><img src="${xe(url)}" alt="" loading="lazy"></div>`).join('')
           :`<div class="fmodal-img-slide">${p.emoji||'🛋️'}</div>`}
       </div>
-      ${imgs.length>1?`
-        <button class="fmodal-arrow fmodal-arrow-r" onclick="slideDir(-1)">&#8250;</button>
-        <button class="fmodal-arrow fmodal-arrow-l" onclick="slideDir(1)">&#8249;</button>
-        <div class="fmodal-img-dots">${imgs.map((_,i)=>`<div class="fmodal-img-dot${i===0?' on':''}" onclick="goSlide(${i})"></div>`).join('')}</div>`:''}
+      <button class="fmodal-arrow fmodal-arrow-r" id="arrow-r" onclick="slideDir(-1)" style="display:${imgs.length>1?'flex':'none'}">›</button>
+      <button class="fmodal-arrow fmodal-arrow-l" id="arrow-l" onclick="slideDir(1)" style="display:${imgs.length>1?'flex':'none'}">‹</button>
+      ${imgs.length>1?`<div class="fmodal-img-dots" id="img-dots">${imgs.map((_,i)=>`<div class="fmodal-img-dot${i===0?' on':''}" onclick="goSlide(${i})"></div>`).join('')}</div>`:'<div id="img-dots"></div>'}
     </div>
     <div class="fmodal-body">
       <div class="fmodal-brand">${xe(isEn?gb(bid).en:gb(bid).ar)}</div>
@@ -606,7 +605,7 @@ function openModal(pid){
       ${colors.length?`
         <div class="fmodal-section-lbl" style="margin-top:10px"><span class="lar">اللون</span><span class="len" style="display:${isEn?'':'none'}">Color</span></div>
         <div class="fmodal-colors">
-          ${colors.map((c,i)=>`<div class="fcolor-opt${i===ci?' sel':''}" onclick="pickColor('${pid}',${i},this)">
+          ${colors.map((c,i)=>`<div class="fcolor-opt${i===ci?' sel':''}" onclick="pickColor('${pid}',${i},this)" data-imgs='${JSON.stringify(c.imgs||[])}'>
             <div class="fcolor-swatch" style="background:${c.hex}"></div>
             <div class="fcolor-nm"><span class="lar">${xe(c.ar||c.nameAr||'')}</span><span class="len" style="display:${isEn?'':'none'}">${xe(c.en||c.nameEn||'')}</span></div>
           </div>`).join('')}
@@ -672,16 +671,24 @@ function pickColor(pid,ci,el){
   selColor[pid]=ci;
   document.querySelectorAll('.fcolor-opt').forEach(x=>x.classList.remove('sel'));
   el.classList.add('sel');
-  // حدّث الصور في الـ slider
+  // حدّث الصور — نستخدم data-imgs من الـ element نفسه
+  const imgs=JSON.parse(el.dataset.imgs||'[]');
   const p=PRODUCTS[pid];
-  const colors=Object.values(p.colors||{});
-  const imgs=colors[ci]?.imgs||[];
   const slider=document.getElementById('img-slider');
+  const dotsEl=document.getElementById('img-dots');
+  const arrowR=document.getElementById('arrow-r');
+  const arrowL=document.getElementById('arrow-l');
   if(slider){
     slider.innerHTML=imgs.length
       ?imgs.map(url=>`<div class="fmodal-img-slide"><img src="${xe(url)}" alt="" loading="lazy"></div>`).join('')
       :`<div class="fmodal-img-slide">${p.emoji||'🛋️'}</div>`;
   }
+  if(dotsEl){
+    dotsEl.innerHTML=imgs.length>1
+      ?imgs.map((_,i)=>`<div class="fmodal-img-dot${i===0?' on':''}" onclick="goSlide(${i})"></div>`).join(''):'';
+  }
+  if(arrowR) arrowR.style.display=imgs.length>1?'flex':'none';
+  if(arrowL) arrowL.style.display=imgs.length>1?'flex':'none';
 }
 
 // ===== COMPARE =====
