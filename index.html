@@ -721,7 +721,7 @@ function addCart(pid){
   if(ex) ex.qty++;
   else cart.push({key,pid,nameAr:p.nameAr,nameEn:p.nameEn,
     colorAr:c.ar||c.nameAr||'',colorEn:c.en||c.nameEn||'',
-    hex:c.hex,size,price:p.price,qty:1});
+    hex:c.hex,thumb:(c.imgs||[])[0]||'',size,price:p.price,qty:1});
   updateCartUI();toast(isEn?'Added to cart ✓':'✓ أضيف للسلة');
 }
 function updateCartUI(){
@@ -748,7 +748,9 @@ function renderCart(){
   }
   list.innerHTML=cart.map((item,i)=>`
     <div class="fcart-item">
-      <div class="fcart-swatch" style="background:${item.hex}"></div>
+      <div class="fcart-swatch" style="background:${item.hex};overflow:hidden;padding:0">
+        ${item.thumb?`<img src="${item.thumb}" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">`:''}
+      </div>
       <div>
         <div class="fcart-item-nm">${xe(isEn?item.nameEn:item.nameAr)}</div>
         <div class="fcart-item-sub">${xe(isEn?item.colorEn:item.colorAr)}${item.size?` · ${xe(gs(item.size).en)}`:''} × ${item.qty}</div>
