@@ -114,6 +114,16 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--tx);direc
 .color-imgs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px}
 .color-img-thumb{position:relative;aspect-ratio:1;border-radius:6px;overflow:hidden;border:1.5px solid var(--bd);background:var(--bg3);cursor:pointer}
 .color-img-thumb img{width:100%;height:100%;object-fit:cover}
+/* Lightbox */
+.lb-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;align-items:center;justify-content:center}
+.lb-bg.open{display:flex}
+.lb-img{max-width:90vw;max-height:85vh;object-fit:contain;border-radius:8px;user-select:none}
+.lb-close{position:absolute;top:16px;left:16px;background:rgba(255,255,255,.12);border:none;color:#fff;font-size:22px;width:40px;height:40px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.lb-arrow{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:28px;width:46px;height:46px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.lb-arrow:hover{background:rgba(255,255,255,.3)}
+.lb-prev{right:18px}
+.lb-next{left:18px}
+.lb-counter{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.6);font-size:12px;font-family:'Tajawal',sans-serif}
 .color-img-del{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.7);color:#fff;border:none;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center}
 .color-img-add{aspect-ratio:1;border-radius:6px;border:1.5px dashed var(--bd);background:none;color:var(--mt);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
 .color-img-add:hover{border-color:var(--gold);color:var(--gold)}
@@ -156,10 +166,11 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--tx);direc
   <div class="sidebar-footer">
     <div class="admin-user">
       <div class="admin-avatar">S</div>
-      <div>
+      <div style="flex:1">
         <div class="admin-name">Super Admin</div>
         <div class="admin-role">مفروشاتي · الكويت</div>
       </div>
+      <button onclick="localStorage.removeItem('maf_admin_auth');location.reload()" title="خروج" style="background:none;border:none;cursor:pointer;color:var(--mt);font-size:15px;padding:4px" title="تسجيل خروج">🚪</button>
     </div>
   </div>
 </div>
@@ -560,7 +571,7 @@ function renderColors(){
       </div>
       <div class="color-imgs-label">صور هذا اللون (حتى 8 صور)</div>
       <div class="color-imgs-grid" id="imgs-grid-${i}">
-        ${(c.imgs||[]).map((url,j)=>`<div class="color-img-thumb"><img src="${xe(url)}" alt="" onerror="this.src=''"><button class="color-img-del" onclick="removeColorImg(${i},${j})">✕</button></div>`).join('')}
+        ${(c.imgs||[]).map((url,j)=>`<div class="color-img-thumb" onclick="openLightbox(editColors[${i}].imgs,${j})"><img src="${xe(url)}" alt="" onerror="this.src=''"><button class="color-img-del" onclick="event.stopPropagation();removeColorImg(${i},${j})">✕</button></div>`).join('')}
         ${(c.imgs||[]).length<8?`<button class="color-img-add" onclick="addColorImg(${i})">+</button>`:''}
       </div>
       <input type="url" class="cin" id="img-url-${i}" placeholder="أو الصق رابط صورة (https://...)" style="direction:ltr;margin-top:4px;font-size:11px" onkeydown="if(event.key==='Enter'){pasteImgUrl(${i});event.preventDefault()}">
@@ -892,6 +903,33 @@ function openModal(){document.getElementById('modalBg').classList.add('open');}
 function closeModal(){document.getElementById('modalBg').classList.remove('open');}
 document.getElementById('modalBg').addEventListener('click',e=>{if(e.target===document.getElementById('modalBg'))closeModal();});
 
+// ===== LIGHTBOX =====
+let lbUrls=[],lbIdx=0;
+function openLightbox(urls,idx){
+  lbUrls=urls;lbIdx=idx;
+  document.getElementById('lbBg').classList.add('open');
+  _lbRender();
+  document.addEventListener('keydown',_lbKey);
+}
+function closeLightbox(){
+  document.getElementById('lbBg').classList.remove('open');
+  document.removeEventListener('keydown',_lbKey);
+}
+function _lbRender(){
+  document.getElementById('lbImg').src=lbUrls[lbIdx];
+  const c=document.getElementById('lbCounter');
+  c.textContent=lbUrls.length>1?(lbIdx+1)+' / '+lbUrls.length:'';
+  document.getElementById('lbPrev').style.display=lbUrls.length>1?'flex':'none';
+  document.getElementById('lbNext').style.display=lbUrls.length>1?'flex':'none';
+}
+function lbMove(dir){lbIdx=(lbIdx+dir+lbUrls.length)%lbUrls.length;_lbRender();}
+function _lbKey(e){
+  if(e.key==='ArrowRight')lbMove(1);
+  else if(e.key==='ArrowLeft')lbMove(-1);
+  else if(e.key==='Escape')closeLightbox();
+}
+document.getElementById('lbBg').addEventListener('click',e=>{if(e.target===document.getElementById('lbBg'))closeLightbox();});
+
 // ===== IMAGE HELPERS =====
 function loadImg(inp,urlId,prevId,circle){
   const f=inp.files[0];if(!f)return;
@@ -902,10 +940,56 @@ function previewImg(url,prevId,circle){
   el.innerHTML=url?`<img src="${url}" style="width:100%;height:100%;object-fit:cover">`:(circle?'👤':'🖼️');
 }
 
+// ===== AUTH =====
+const ADMIN_PASS='mafroshaty2025';
+const AUTH_KEY='maf_admin_auth';
+function checkAuth(){
+  const val=document.getElementById('authPass').value;
+  if(val===ADMIN_PASS){
+    localStorage.setItem(AUTH_KEY,'1');
+    document.getElementById('authScreen').style.display='none';
+    startApp();
+  } else {
+    document.getElementById('authErr').textContent='كلمة المرور غير صحيحة';
+    document.getElementById('authPass').value='';
+  }
+}
+function startApp(){
+  document.getElementById('content').innerHTML='<div class="empty" style="padding:60px;font-size:14px">⏳ جاري الاتصال بـ Firebase...</div>';
+  initListeners();
+  goTab('overview',document.getElementById('nav-overview'));
+}
+
 // ===== INIT =====
-document.getElementById('content').innerHTML='<div class="empty" style="padding:60px;font-size:14px">⏳ جاري الاتصال بـ Firebase...</div>';
-initListeners();
-goTab('overview',document.getElementById('nav-overview'));
+if(localStorage.getItem(AUTH_KEY)==='1'){
+  startApp();
+}else{
+  const as=document.getElementById('authScreen');
+  as.style.display='flex';
+  setTimeout(()=>document.getElementById('authPass').focus(),100);
+}
 </script>
+<!-- LIGHTBOX -->
+<div class="lb-bg" id="lbBg">
+  <button class="lb-close" onclick="closeLightbox()">✕</button>
+  <button class="lb-arrow lb-prev" id="lbPrev" onclick="lbMove(1)">›</button>
+  <img class="lb-img" id="lbImg" src="" alt="">
+  <button class="lb-arrow lb-next" id="lbNext" onclick="lbMove(-1)">‹</button>
+  <div class="lb-counter" id="lbCounter"></div>
+</div>
+
+<!-- AUTH SCREEN -->
+<div id="authScreen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:8000;align-items:center;justify-content:center;flex-direction:column">
+  <div style="background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:36px 32px;width:min(360px,92vw);text-align:center">
+    <div style="width:52px;height:52px;background:var(--gold);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#0d1117;margin:0 auto 16px">م</div>
+    <div style="font-size:18px;font-weight:800;color:var(--tx);margin-bottom:4px">مفروشاتي</div>
+    <div style="font-size:12px;color:var(--mt);margin-bottom:24px">لوحة التحكم — أدمن فقط</div>
+    <input id="authPass" type="password" placeholder="كلمة المرور" style="width:100%;padding:11px 14px;border-radius:8px;border:1.5px solid var(--bd);background:var(--bg3);color:var(--tx);font-size:14px;font-family:'Tajawal',sans-serif;direction:ltr;text-align:center;outline:none;margin-bottom:12px"
+      onkeydown="if(event.key==='Enter')checkAuth()">
+    <div id="authErr" style="color:var(--red);font-size:11px;margin-bottom:10px;min-height:16px"></div>
+    <button onclick="checkAuth()" style="width:100%;padding:11px;border-radius:8px;background:var(--gold);color:#0d1117;font-size:14px;font-weight:800;border:none;cursor:pointer;font-family:'Tajawal',sans-serif">دخول</button>
+  </div>
+</div>
+
 </body>
 </html>
