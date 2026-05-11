@@ -34,9 +34,9 @@ body{font-family:'Tajawal',sans-serif;background:var(--theme-bg);color:var(--dar
 
 /* HERO */
 .fhero{background:var(--white);border-bottom:1px solid var(--border);overflow:hidden}
-.fhero-banner{width:100%;height:180px;object-fit:cover;display:block;background:linear-gradient(135deg,var(--gold-light),#f0ebe0)}
-@media(min-width:640px){.fhero-banner,.fhero-banner-ph{height:260px;max-height:320px}}
-.fhero-banner-ph{width:100%;height:120px;background:linear-gradient(135deg,var(--gold-light),#ede8e0);display:flex;align-items:center;justify-content:center;font-size:36px}
+.fhero-banner-wrap{width:100%;aspect-ratio:3/1;overflow:hidden;background:linear-gradient(135deg,var(--gold-light),#ede8e0)}
+.fhero-banner{width:100%;height:100%;object-fit:cover;display:block}
+.fhero-banner-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:36px}
 .fhero-body{padding:18px 16px 20px;text-align:center}
 .fhero-store-row{display:inline-flex;align-items:center;gap:10px;background:var(--cream);border:1px solid var(--border);border-radius:50px;padding:6px 16px 6px 6px;margin-bottom:12px}
 .store-avatar{width:32px;height:32px;border-radius:50%;background:var(--gold-light);border:1.5px solid var(--gold-border);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:var(--theme-primary)}
@@ -255,7 +255,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--theme-bg);color:var(--dar
 
 <!-- HERO -->
 <div class="fhero">
-  <div id="hero-banner" class="fhero-banner-ph">🛋️</div>
+  <div class="fhero-banner-wrap"><div id="hero-banner" class="fhero-banner-ph">🛋️</div></div>
   <div class="fhero-body">
     <div class="fhero-store-row">
       <div class="store-avatar" id="hero-avatar">م</div>
@@ -473,7 +473,7 @@ function renderHeader(){
   document.getElementById('nav-store-sub').textContent=(m.slug||'')+'.mafroshatي.com';
   // HERO
   if(m.banner){
-    document.getElementById('hero-banner').outerHTML=`<img id="hero-banner" class="fhero-banner" src="${xe(m.banner)}" alt="">`;
+    document.getElementById('hero-banner').outerHTML=`<img id="hero-banner" class="fhero-banner" src="${xe(m.banner)}" alt="" style="width:100%;height:100%;object-fit:cover">`;
   }
   const av=document.getElementById('hero-avatar');
   av.innerHTML=m.logo?`<img src="${xe(m.logo)}" alt="" style="width:100%;height:100%;object-fit:cover">`:(m.name||'م')[0];
@@ -489,7 +489,7 @@ function renderFilters(){
   const pa=prodsArr();
   const brandIds=[...new Set(pa.map(p=>p.brand_id||p.brand).filter(Boolean))];
   document.getElementById('brand-filter').innerHTML=
-    `<button class="ffilter-btn${activeBrand==='all'?' on':''}" onclick="setBrand('all')"><span class="lar">الكل</span><span class="len" style="display:${isEn?'':'none'}">All</span></button>`
+    `<button class="ffilter-btn${activeBrand==='all'?' on':''}" onclick="setBrand('all')">${isEn?'All':'الكل'}</button>`
     +brandIds.map(bid=>`<button class="ffilter-btn${activeBrand===bid?' on':''}" onclick="setBrand('${bid}')">
       ${xe(isEn?(gb(bid).en||gb(bid).ar):(gb(bid).ar||gb(bid).en))}
     </button>`).join('');
@@ -498,7 +498,7 @@ function renderFilters(){
   const sfw=document.getElementById('size-filter');
   if(sizeIds.length){
     sfl.style.display='flex';sfw.style.display='flex';
-    sfw.innerHTML=`<button class="ffilter-btn${activeSize==='all'?' on':''}" onclick="setSize('all')"><span class="lar">الكل</span><span class="len" style="display:${isEn?'':'none'}">All</span></button>`
+    sfw.innerHTML=`<button class="ffilter-btn${activeSize==='all'?' on':''}" onclick="setSize('all')">${isEn?'All':'الكل'}</button>`
       +sizeIds.map(sid=>`<button class="ffilter-btn${activeSize===sid?' on':''}" onclick="setSize('${sid}')">
         ${xe(isEn?gs(sid).en:gs(sid).ar)}
       </button>`).join('');
@@ -570,8 +570,8 @@ function renderModal(){
     :`<div class="fmodal-img-slide" style="font-size:64px">${p.emoji||'🛋️'}</div>`;
 
   let arrowsHTML=imgs.length>1
-    ?'<button class="fmodal-arrow fmodal-arrow-prev" onclick="slideMove(1)">›</button>'
-    +'<button class="fmodal-arrow fmodal-arrow-next" onclick="slideMove(-1)">‹</button>'
+    ?'<button class="fmodal-arrow fmodal-arrow-prev" onclick="slideMove(-1)" style="right:10px">›</button>'
+    +'<button class="fmodal-arrow fmodal-arrow-next" onclick="slideMove(1)" style="left:10px">‹</button>'
     :'';
 
   let dotsHTML=imgs.length>1
@@ -613,10 +613,10 @@ function renderModal(){
       <div class="fmodal-btns" style="margin-top:12px">
         <button class="wa-btn" onclick="waProduct('${pid}')">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a6.27 6.27 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.555 4.122 1.527 5.855L.057 23.43a.75.75 0 0 0 .918.919l5.638-1.479A11.953 11.953 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.951 9.951 0 0 1-5.319-1.469l-.38-.227-3.946 1.034 1.053-3.838-.248-.396A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-          <span class="lar">اطلب الآن واتساب</span><span class="len" style="display:${isEn?'':'none'}">Order on WhatsApp</span>
+          ${isEn?'Order on WhatsApp':'اطلب الآن واتساب'}
         </button>
         <button class="add-cart-btn" onclick="addCart('${pid}')">
-          🛒 <span class="lar">أضف للسلة</span><span class="len" style="display:${isEn?'':'none'}">Add to Cart</span>
+          🛒 \${isEn?'Add to Cart':'أضف للسلة'}
         </button>
       </div>
 
@@ -632,7 +632,7 @@ function renderModal(){
       ${(p.descAr||p.descEn)?`<div class="fmodal-desc">${xe(isEn?p.descEn:p.descAr)}</div>`:''}
 
       <div class="fmodal-compare-row">
-        <div class="fmodal-compare-lbl">⚖️ <span class="lar">أضف للمقارنة</span><span class="len" style="display:${isEn?'':'none'}">Compare</span></div>
+        <div class="fmodal-compare-lbl">⚖️ \${isEn?'Compare':'أضف للمقارنة'}</div>
         <button class="compare-toggle${compareList.includes(pid)?' on':''}" onclick="toggleCompare('${pid}')"></button>
       </div>
     </div>`;
@@ -778,10 +778,12 @@ function clearCart(){cart=[];updateCartUI();renderCart();}
 // ===== WHATSAPP =====
 function waProduct(pid){
   const p=PRODUCTS[pid];
-  const ci=selColor[pid]||0;const c=p.colors[ci]||{};
+  const ci=selColor[pid]||0;const col=p.colors[ci]||{};
   const size=selSize[pid];
-  const colorName=isEn?(c.en||c.nameEn||''):(c.ar||c.nameAr||'');
+  const colorName=isEn?(col.en||col.nameEn||''):(col.ar||col.nameAr||'');
   const sizeName=size?(isEn?gs(size).en:gs(size).ar):'';
+  // حفظ الطلب في Firebase
+  saveOrder([{nameAr:p.nameAr,nameEn:p.nameEn,colorAr:col.ar||col.nameAr||'',colorEn:col.en||col.nameEn||'',size,price:p.price,qty:1}]);
   let msg=isEn
     ?`Hello 👋\nOrder from *${STORE.name}*:\n\n• *${p.nameEn}*\n  🎨 Color: ${colorName}\n${sizeName?`  📐 Size: ${sizeName}\n`:''  }  💰 Price: ${p.price} KWD`
     :`مرحباً 👋\nأريد الطلب من *${STORE.name}*:\n\n• *${p.nameAr}*\n  🎨 اللون: ${colorName}\n${sizeName?`  📐 المقاس: ${sizeName}\n`:''}  💰 السعر: ${p.price} KWD`;
@@ -790,6 +792,8 @@ function waProduct(pid){
 function sendWA(){
   if(!cart.length)return;
   const total=cart.reduce((s,x)=>s+x.price*x.qty,0);
+  // حفظ كل طلبات السلة في Firebase
+  saveOrder(cart);
   let msg=isEn?`Hello 👋\nOrder from *${STORE.name}*:\n\n`:`مرحباً 👋\nطلبي من *${STORE.name}*:\n\n`;
   cart.forEach((item,i)=>{
     const sizeName=item.size?(isEn?gs(item.size).en:gs(item.size).ar):'';
@@ -805,6 +809,30 @@ function waStore(){
   window.open(`https://wa.me/${STORE.waNumber||'96512345678'}?text=${encodeURIComponent(msg)}`,'_blank');
 }
 
+
+// ===== SAVE ORDER TO FIREBASE =====
+function saveOrder(items){
+  const now=new Date();
+  const date=now.toLocaleDateString('ar-EG')+' '+now.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'});
+  items.forEach(item=>{
+    const order={
+      product: item.nameAr,
+      productEn: item.nameEn||'',
+      color: item.colorAr,
+      colorEn: item.colorEn||'',
+      size: item.size||'',
+      marketer: STORE.name||'',
+      marketer_id: STORE.id||'',
+      price: item.price,
+      qty: item.qty||1,
+      total: item.price*(item.qty||1),
+      currency:'KWD',
+      status:'new',
+      date
+    };
+    db.ref('orders').push(order);
+  });
+}
 // ===== LANG =====
 function toggleLang(){
   isEn=!isEn;
