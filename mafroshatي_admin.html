@@ -463,8 +463,18 @@ function openProduct(id){
   const isNew=id===-1;
   const p=isNew?{brand_id:'',nameAr:'',nameEn:'',descAr:'',descEn:'',price:'',oldPrice:'',badge:'',emoji:'🛋️',status:'active',colors:{},sizes:[]}:{...products[id]};
   const ba=brandsArr();
-  editColors=Object.values(p.colors||{}).length
-    ?Object.entries(p.colors).map(([k,v])=>({...v,_key:k}))
+  // deep copy للألوان عشان مش تتشارك نفس الـ imgs array
+  const colorsObj=p.colors||{};
+  editColors=Object.keys(colorsObj).length
+    ?Object.keys(colorsObj).sort().map(k=>{
+        const col=colorsObj[k];
+        // Firebase بيخزن imgs كـ object أحياناً — نحوله لـ array
+        let imgs=col.imgs||[];
+        if(imgs && !Array.isArray(imgs)){
+          imgs=Object.keys(imgs).sort((a,b)=>Number(a)-Number(b)).map(i=>imgs[i]);
+        }
+        return {_key:k, ar:col.ar||col.nameAr||'', en:col.en||col.nameEn||'', hex:col.hex||'#ccc', imgs:[...imgs]};
+      })
     :[{ar:'لون 1',en:'Color 1',hex:'#8B5E3C',imgs:[]}];
   document.getElementById('modalTitle').textContent=isNew?'+ إضافة منتج جديد':'تعديل: '+p.nameAr;
   document.getElementById('modalBody').innerHTML=`
@@ -560,9 +570,11 @@ function addColorImg(ci){
 function pasteImgUrl(ci){
   const inp=document.getElementById('img-url-'+ci),url=inp.value.trim();
   if(!url){toast('أدخل رابط الصورة',false);return;}
-  const c=editColors[ci];if(!c.imgs)c.imgs=[];
-  if(c.imgs.length>=8){toast('الحد الأقصى 8 صور',false);return;}
-  c.imgs.push(url);inp.value='';renderColors();
+  if(!editColors[ci].imgs) editColors[ci].imgs=[];
+  if(editColors[ci].imgs.length>=8){toast('الحد الأقصى 8 صور',false);return;}
+  // نعمل copy جديدة عشان مش نعدل على reference مشترك
+  editColors[ci]={...editColors[ci], imgs:[...editColors[ci].imgs, url]};
+  inp.value='';renderColors();
 }
 function removeColorImg(ci,ji){editColors[ci].imgs.splice(ji,1);renderColors();}
 function saveProduct(id){
@@ -572,7 +584,13 @@ function saveProduct(id){
   if(!ar||!en||!price){toast('أدخل الاسم والسعر',false);return;}
   const sizes=ALL_SIZES.map(s=>s.id).filter(sid=>document.getElementById('size-'+sid)?.checked);
   const colorsObj={};
-  editColors.forEach((c,i)=>{const key=c._key||('c'+(i+1));colorsObj[key]={ar:c.ar||'',en:c.en||'',hex:c.hex,imgs:c.imgs||[]};});
+  editColors.forEach((c,i)=>{
+    const key=c._key||('c'+(i+1));
+    // تأكد إن imgs array وليست object
+    let imgs=c.imgs||[];
+    if(!Array.isArray(imgs)) imgs=Object.values(imgs);
+    colorsObj[key]={ar:c.ar||'',en:c.en||'',hex:c.hex,imgs};
+  });
   const oldPrice=Number(document.getElementById('p-old').value);
   const obj={
     brand_id:document.getElementById('p-brand').value,
