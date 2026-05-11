@@ -130,7 +130,11 @@ body{font-family:'Tajawal',sans-serif;background:var(--theme-bg);color:var(--dar
 .fcolor-opt{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:5px;border-radius:10px;border:2px solid transparent;transition:all .18s;min-width:56px}
 .fcolor-opt.sel{border-color:var(--theme-primary);background:var(--gold-light)}
 .fcolor-swatch{width:46px;height:46px;border-radius:8px;border:1px solid var(--border)}
-.fcolor-nm{font-size:10px;font-weight:600;color:var(--gray2);text-align:center}
+.fcolor-nm{font-size:10px;font-weight:600;color:var(--gray2);text-align:center;max-width:58px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fcolor-thumb-ph{width:58px;height:58px;border-radius:8px;border:2px solid rgba(0,0,0,.06);overflow:hidden;flex-shrink:0;background:var(--gold-light)}
+.fcolor-thumb{width:58px;height:58px;object-fit:cover;display:block}
+.fcolor-swatch-circle{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.fmodal-colors{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
 .fcolor-opt.sel .fcolor-nm{color:var(--theme-primary)}
 /* compare toggle */
 .fmodal-compare-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--border);margin-bottom:10px}
