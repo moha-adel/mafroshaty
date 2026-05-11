@@ -491,7 +491,7 @@ function renderFilters(){
   document.getElementById('brand-filter').innerHTML=
     `<button class="ffilter-btn${activeBrand==='all'?' on':''}" onclick="setBrand('all')"><span class="lar">الكل</span><span class="len" style="display:${isEn?'':'none'}">All</span></button>`
     +brandIds.map(bid=>`<button class="ffilter-btn${activeBrand===bid?' on':''}" onclick="setBrand('${bid}')">
-      <span class="lar">${xe(gb(bid).ar)}</span><span class="len" style="display:${isEn?'':'none'}">${xe(gb(bid).en)}</span>
+      ${xe(isEn?(gb(bid).en||gb(bid).ar):(gb(bid).ar||gb(bid).en))}
     </button>`).join('');
   const sizeIds=[...new Set(pa.flatMap(p=>p.sizes||[]))];
   const sfl=document.getElementById('size-filter-label');
@@ -500,7 +500,7 @@ function renderFilters(){
     sfl.style.display='flex';sfw.style.display='flex';
     sfw.innerHTML=`<button class="ffilter-btn${activeSize==='all'?' on':''}" onclick="setSize('all')"><span class="lar">الكل</span><span class="len" style="display:${isEn?'':'none'}">All</span></button>`
       +sizeIds.map(sid=>`<button class="ffilter-btn${activeSize===sid?' on':''}" onclick="setSize('${sid}')">
-        <span class="lar">${xe(gs(sid).ar)}</span><span class="len" style="display:${isEn?'':'none'}">${xe(gs(sid).en)}</span>
+        ${xe(isEn?gs(sid).en:gs(sid).ar)}
       </button>`).join('');
   } else {sfl.style.display='none';sfw.style.display='none';}
 }
@@ -527,11 +527,11 @@ function renderProducts(){
           ?`<img class="fprod-img" src="${xe(firstImg)}" alt="${xe(p.nameAr)}" loading="lazy" onerror="this.style.display='none'">`
           :`<div class="fprod-img-ph">${p.emoji||'🛋️'}</div>`}
         ${p.badge==='new'?`<div class="fprod-badge badge-new">${isEn?'NEW':'جديد'}</div>`:p.badge==='sale'?`<div class="fprod-badge badge-sale">${isEn?'SALE':'خصم'}</div>`:''}
-        <div class="fprod-brand-tag">${xe(isEn?gb(bid).en:gb(bid).ar)}</div>
+        <div class="fprod-brand-tag">${xe(isEn?(gb(bid).en||gb(bid).ar):(gb(bid).ar||gb(bid).en))}</div>
         ${p.colors.length>1?`<div class="fprod-colors-row">${p.colors.slice(0,4).map(c=>`<div class="fprod-dot" style="background:${c.hex}"></div>`).join('')}</div>`:''}
       </div>
       <div class="fprod-body">
-        <div class="fprod-brand">${xe(isEn?gb(bid).en:gb(bid).ar)}</div>
+        <div class="fprod-brand">${xe(isEn?(gb(bid).en||gb(bid).ar):(gb(bid).ar||gb(bid).en))}</div>
         <div class="fprod-nm">${xe(isEn?p.nameEn:p.nameAr)}</div>
         ${(p.sizes||[]).length?`<div class="fprod-sizes">${p.sizes.map(s=>`<span class="fprod-size-tag">${xe(isEn?gs(s).en:gs(s).ar)}</span>`).join('')}</div>`:''}
         <div class="fprod-foot">
@@ -540,7 +540,7 @@ function renderProducts(){
             ${p.oldPrice?`<div class="fprod-old">${p.oldPrice} KWD</div>`:''}
           </div>
           <button class="fprod-choose" onclick="event.stopPropagation();openModal('${p.id}')">
-            <span class="lar">اختر</span><span class="len" style="display:${isEn?'':'none'}">Choose</span>
+            ${isEn?'Choose':'اختر'}
           </button>
         </div>
       </div>
@@ -625,7 +625,7 @@ function renderModal(){
       <div class="fmodal-sizes" id="modal-sizes">
         ${p.sizes.map(s=>`
           <div class="fmodal-size${selSize[pid]===s?' sel':''}" onclick="pickSize('${pid}','${s}')">
-            <span class="lar">${xe(gs(s).ar)}</span><span class="len" style="display:${isEn?'':'none'}">${xe(gs(s).en)}</span>
+            ${xe(isEn?gs(s).en:gs(s).ar)}
           </div>`).join('')}
       </div>`:''}
 
