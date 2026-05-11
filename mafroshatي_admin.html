@@ -757,7 +757,6 @@ function openMarketer(id){
         هنا تقدر <strong>تُخفي</strong> منتجات أو شركات بعينها من متجر هذا المسوق.
       </div>
       <div id="prod-pick-wrap"></div>
-      <script>renderMarketerProds(${JSON.stringify(pa)}, ${JSON.stringify(m.products||[])}, ${JSON.stringify(m.excluded||[])})<\/script>
     </div>
     <div class="modal-footer">
       ${!isNew?`<button class="btn-danger" onclick="delMarketer('${id}');closeModal()">حذف</button>`:''}
@@ -765,6 +764,8 @@ function openMarketer(id){
       <button class="btn-primary" onclick="saveMarketer(${isNew?'null':`'${id}'`})">${isNew?'إضافة':'حفظ'}</button>
     </div>`;
   openModal();
+  // استدعاء بعد render عشان الـ DOM يكون جاهز
+  setTimeout(()=>renderMarketerProds(pa, m.products||[], m.excluded||[]), 50);
 }
 function selectTheme(id){
   _selectedTheme=id;
