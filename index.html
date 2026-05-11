@@ -441,9 +441,17 @@ function loadMarketer(key, data){
       PRODUCTS={};
       Object.entries(all).forEach(([pid,p])=>{
         if(p.status==='active' && !excluded.includes(pid)){
-          // تحويل colors من object إلى array مرتبة
           const colorsObj=p.colors||{};
-          const colorsArr=Object.entries(colorsObj).map(([k,v])=>({_key:k,...v}));
+          // ترتيب ثابت بالـ key + تحويل imgs من object لـ array
+          const colorsArr=Object.keys(colorsObj).sort().map(k=>{
+            const col=colorsObj[k];
+            // Firebase بيخزن arrays كـ objects {0:"url1",1:"url2"}
+            let imgs=col.imgs||[];
+            if(imgs && !Array.isArray(imgs)){
+              imgs=Object.keys(imgs).sort((a,b)=>Number(a)-Number(b)).map(i=>imgs[i]);
+            }
+            return {_key:k, ar:col.ar||col.nameAr||'', en:col.en||col.nameEn||'', hex:col.hex||'#ccc', imgs};
+          });
           PRODUCTS[pid]={...p, id:pid, colors:colorsArr};
         }
       });
@@ -557,9 +565,10 @@ function renderModal(){
     ?imgs.map(url=>`<div class="fmodal-img-slide"><img src="${xe(url)}" alt="" loading="lazy"></div>`).join('')
     :`<div class="fmodal-img-slide" style="font-size:64px">${p.emoji||'🛋️'}</div>`;
 
-  let arrowsHTML=imgs.length>1?`
-    <button class="fmodal-arrow fmodal-arrow-prev" onclick="slideMove(1)">&#8250;</button>
-    <button class="fmodal-arrow fmodal-arrow-next" onclick="slideMove(-1)">&#8249;</button>`:'';
+  let arrowsHTML=imgs.length>1
+    ?'<button class="fmodal-arrow fmodal-arrow-prev" onclick="slideMove(1)">›</button>'
+    +'<button class="fmodal-arrow fmodal-arrow-next" onclick="slideMove(-1)">‹</button>'
+    :'';
 
   let dotsHTML=imgs.length>1
     ?`<div class="fmodal-img-dots">${imgs.map((_,i)=>`<div class="fmodal-img-dot${i===0?' on':''}" onclick="slideTo(${i})"></div>`).join('')}</div>`:'';
