@@ -821,27 +821,42 @@ function delMarketer(id){
 
 // ===== ORDERS =====
 function renderOrders(){
-  const oa=ordersArr();
+  const oa=ordersArr().reverse();
   return`<div class="section">
     <div class="section-hd"><div class="section-title">📦 الطلبات <span class="section-count">${oa.length}</span></div></div>
-    <table class="tbl">
-      <tr><th>#</th><th>المنتج</th><th>اللون</th><th>المسوق</th><th>السعر</th><th>التاريخ</th><th>الحالة</th><th>إجراءات</th></tr>
-      ${oa.length===0?`<tr><td colspan="8" class="empty">لا توجد طلبات بعد</td></tr>`:
-        oa.reverse().map(o=>`<tr>
-          <td style="color:var(--mt);font-size:11px">#${String(o.id).slice(-4)}</td>
-          <td><div class="tbl-name">${xe(o.product)}</div></td>
-          <td>${xe(o.color)}</td><td>${xe(o.marketer)}</td>
-          <td><span style="color:var(--gold);font-weight:800">${o.price} KWD</span></td>
-          <td style="color:var(--mt);font-size:11px">${xe(o.date)}</td>
-          <td>${statusBadge(o.status)}</td>
-          <td><div class="actions">
+    ${oa.length===0?'<div class="empty">لا توجد طلبات بعد</div>':
+      oa.map(o=>{
+        // دعم النظام القديم (order فيه product) والجديد (order فيه items)
+        const items=o.items?Object.values(o.items):[{product:o.product,color:o.color,size:o.size||'',price:o.price,qty:o.qty||1}];
+        const total=o.total||items.reduce((s,x)=>s+(x.price*(x.qty||1)),0);
+        return`<div style="background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="color:var(--mt);font-size:11px">#${String(o.id).slice(-4)}</span>
+              ${statusBadge(o.status)}
+              <span style="font-size:11px;color:var(--mt)">${xe(o.date)}</span>
+            </div>
+            <span style="color:var(--gold);font-weight:800;font-size:15px">${total} KWD</span>
+          </div>
+          <div style="font-size:12px;color:var(--mt);margin-bottom:8px">👤 ${xe(o.marketer)} — ${items.length} ${items.length===1?'منتج':'منتجات'}</div>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
+            ${items.map(item=>`
+              <div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--bg3);border-radius:7px;border:1px solid var(--bd)">
+                <div style="flex:1">
+                  <div style="font-size:13px;font-weight:500;color:var(--tx)">${xe(item.product||item.nameAr||'')}</div>
+                  <div style="font-size:11px;color:var(--mt)">${xe(item.color||item.colorAr||'')}${item.size?` · ${xe(item.size)}`:''} × ${item.qty||1}</div>
+                </div>
+                <span style="color:var(--gold);font-size:13px;font-weight:700">${(item.price*(item.qty||1))} KWD</span>
+              </div>`).join('')}
+          </div>
+          <div class="actions">
             ${o.status==='new'?`<button class="act-btn act-edit" style="background:rgba(46,160,67,.1);color:var(--green);border:1px solid rgba(46,160,67,.2)" onclick="updateOrderStatus('${o.id}','confirmed')">✓ تأكيد</button>`:''}
             ${o.status==='confirmed'?`<button class="act-btn act-edit" style="background:rgba(37,99,235,.1);color:#3b82f6;border:1px solid rgba(37,99,235,.2)" onclick="updateOrderStatus('${o.id}','delivered')">📦 مسلّم</button>`:''}
             ${o.status!=='cancelled'&&o.status!=='delivered'?`<button class="act-btn act-del" onclick="updateOrderStatus('${o.id}','cancelled')">✕ إلغاء</button>`:''}
             ${o.status==='delivered'||o.status==='cancelled'?`<span style="font-size:11px;color:var(--mt)">${o.status==='delivered'?'✓ مكتمل':'✕ ملغي'}</span>`:''}
-          </div></td>
-        </tr>`).join('')}
-    </table>
+          </div>
+        </div>`;
+      }).join('')}
   </div>`;
 }
 function updateOrderStatus(id,status){
