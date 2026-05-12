@@ -207,11 +207,18 @@ function doLogin(){
   document.getElementById('loginErr').textContent='⏳ جاري التحقق...';
   db.ref('marketers').once('value',snap=>{
     const all=snap.val()||{};
+    const keys=Object.keys(all);
+    if(keys.length===0){showLoginErr('لا يوجد مسوقين في قاعدة البيانات');return;}
     const found=Object.entries(all).find(([k,v])=>{
       const stored=String(v.waNumber||'').trim().replace(/^\+/,'');
       return stored===wa;
     });
-    if(!found){showLoginErr('الرقم غير مسجل في المنصة');return;}
+    if(!found){
+      // debug: نعرض أول رقم موجود عشان نعرف الفرق
+      const sample=Object.values(all)[0]?.waNumber||'—';
+      showLoginErr(`الرقم غير مسجل. مثال على رقم مسجل: ${sample}`);
+      return;
+    }
     const [id,mkt]=found;
     localStorage.setItem(MKT_KEY,id);
     startApp(id,mkt);
