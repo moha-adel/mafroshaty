@@ -181,9 +181,6 @@ main{padding:16px 16px 90px}
     <button class="nav-tab" onclick="goTab('orders',this)" id="tab-orders">
       <span class="nav-tab-icon">📦</span>طلباتي
     </button>
-    <button class="nav-tab" onclick="goTab('earnings',this)" id="tab-earnings">
-      <span class="nav-tab-icon">💰</span>أرباحي
-    </button>
     <button class="nav-tab" onclick="goTab('store',this)" id="tab-store">
       <span class="nav-tab-icon">🔗</span>متجري
     </button>
@@ -262,7 +259,7 @@ function startApp(id, mkt){
       if(v.marketer_id===id)mine[k]=v;
     });
     allOrders=mine;
-    if(currentTab==='orders'||currentTab==='overview'||currentTab==='earnings')renderTab();
+    if(currentTab==='orders'||currentTab==='overview')renderTab();
   });
   db.ref('products').on('value',snap=>{
     allProducts=snap.val()||{};
@@ -285,7 +282,7 @@ function renderTab(){
   const c=document.getElementById('mainContent');
   if(currentTab==='overview')c.innerHTML=renderOverview();
   else if(currentTab==='orders')c.innerHTML=renderOrders();
-  else if(currentTab==='earnings')c.innerHTML=renderEarnings();
+
   else if(currentTab==='store')c.innerHTML=renderStore();
 }
 
@@ -321,14 +318,10 @@ function calcComm(order){
 function renderOverview(){
   const oa=ordersArr();
   const newO=oa.filter(o=>o.status==='new').length;
-  const deliveredO=oa.filter(o=>o.status==='delivered');
-  const totalComm=deliveredO.reduce((s,o)=>s+calcComm(o),0);
-  const pendingComm=oa.filter(o=>o.status==='confirmed').reduce((s,o)=>s+calcComm(o),0);
   const m=currentMarketer;
   const subExpiry=m.subExpiry?new Date(m.subExpiry):null;
   const subOk=subExpiry&&subExpiry>new Date();
   const subDays=subExpiry?Math.ceil((subExpiry-new Date())/(1000*60*60*24)):0;
-
   return`
   ${subExpiry?`<div class="sub-card ${subOk?'ok':'expired'}" style="margin-bottom:14px">
     <div>
@@ -339,16 +332,6 @@ function renderOverview(){
     <span class="sub-status ${subOk?'ok':'expired'}">${subOk?'✅ سارٍ':'⚠️ منتهي'}</span>
   </div>`:''}
   <div class="stats-grid">
-    <div class="stat-card gold">
-      <div class="stat-label">إجمالي أرباحي</div>
-      <div class="stat-val">${totalComm.toFixed(2)}</div>
-      <div class="stat-sub">KWD من الطلبات المسلّمة</div>
-    </div>
-    <div class="stat-card blue">
-      <div class="stat-label">أرباح قيد التسليم</div>
-      <div class="stat-val">${pendingComm.toFixed(2)}</div>
-      <div class="stat-sub">KWD من طلبات مؤكدة</div>
-    </div>
     <div class="stat-card">
       <div class="stat-label">طلبات جديدة</div>
       <div class="stat-val">${newO}</div>
@@ -359,6 +342,16 @@ function renderOverview(){
       <div class="stat-val">${oa.length}</div>
       <div class="stat-sub">منذ البداية</div>
     </div>
+    <div class="stat-card blue">
+      <div class="stat-label">مؤكدة</div>
+      <div class="stat-val">${oa.filter(o=>o.status==='confirmed').length}</div>
+      <div class="stat-sub">طلب</div>
+    </div>
+    <div class="stat-card gold">
+      <div class="stat-label">مسلّمة</div>
+      <div class="stat-val">${oa.filter(o=>o.status==='delivered').length}</div>
+      <div class="stat-sub">طلب</div>
+    </div>
   </div>
   ${newO>0?`
   <div class="section-title">🔔 طلبات جديدة تحتاج تأكيد</div>
@@ -366,8 +359,6 @@ function renderOverview(){
   ${newO>3?`<div style="text-align:center;padding:8px;font-size:12px;color:var(--blue);cursor:pointer" onclick="goTab('orders',document.getElementById('tab-orders'))">عرض كل الطلبات ←</div>`:''}
   `:'<div class="empty">🎉 لا يوجد طلبات جديدة الآن</div>'}`;
 }
-
-// ===== ORDERS =====
 function renderOrders(){
   const oa=ordersArr();
   const filters=[
