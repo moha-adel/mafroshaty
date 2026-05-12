@@ -242,17 +242,17 @@ function initListeners(onReady){
   function _check(key){if(!_ready[key]){_ready[key]=true;if(onReady)onReady();}}
   db.ref('brands').on('value',snap=>{
     brands=snap.val()||{};updateBadges();
-    if(currentTab==='brands'||currentTab==='overview')render();
+    if(_ready.brands&&(currentTab==='brands'||currentTab==='overview'))render();
     _check('brands');
   });
   db.ref('products').on('value',snap=>{
     products=snap.val()||{};updateBadges();
-    if(currentTab==='products'||currentTab==='overview')render();
+    if(_ready.products&&(currentTab==='products'||currentTab==='overview'))render();
     _check('products');
   });
   db.ref('marketers').on('value',snap=>{
     marketers=snap.val()||{};updateBadges();
-    if(currentTab==='marketers')render();
+    if(_ready.marketers&&currentTab==='marketers')render();
     _check('marketers');
   });
   let prevOrderKeys=new Set();
@@ -266,7 +266,7 @@ function initListeners(onReady){
       prevOrderKeys.add(k);
     });
     orders=data;updateBadges();
-    if(currentTab==='orders'||currentTab==='overview')render();
+    if(_ready.orders&&(currentTab==='orders'||currentTab==='overview'))render();
     _check('orders');
   });
 }
@@ -1012,15 +1012,16 @@ function checkAuth(){
 }
 function startApp(){
   document.getElementById('content').innerHTML='<div class="empty" style="padding:60px;font-size:14px">⏳ جاري الاتصال بـ Firebase...</div>';
+  currentTab='overview'; // نحدده قبل ما listeners تيجي
   let readyCount=0, appStarted=false;
-  const onReady=()=>{
-    readyCount++;
-    if(readyCount>=4 && !appStarted){
-      appStarted=true;
-      goTab('overview',document.getElementById('nav-overview'));
-    }
+  const launch=()=>{
+    if(appStarted)return;
+    appStarted=true;
+    goTab('overview',document.getElementById('nav-overview'));
   };
+  const onReady=()=>{readyCount++;if(readyCount>=4)launch();};
   initListeners(onReady);
+  setTimeout(launch,5000);
 }
 
 // ===== INIT =====
