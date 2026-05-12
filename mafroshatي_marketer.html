@@ -552,7 +552,6 @@ function saveCust(){
     })
     .catch(e=>toast('خطأ: '+e.message));
 }
-}
 function copyUrl(url){
   navigator.clipboard.writeText(url).then(()=>toast('✓ تم النسخ')).catch(()=>{
     const t=document.createElement('textarea');
