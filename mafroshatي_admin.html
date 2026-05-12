@@ -874,40 +874,38 @@ function renderOrders(){
     <div class="section-hd"><div class="section-title">📦 الطلبات <span class="section-count">${oa.length}</span></div></div>
     ${oa.length===0?'<div class="empty">لا توجد طلبات بعد</div>':
       oa.map((o,idx)=>{
+        const num=oa.length-idx;
         const items=o.items?Object.values(o.items):[{product:o.product,color:o.color,size:o.size||'',price:o.price,qty:o.qty||1,brandAr:'',brandEn:''}];
         const total=o.total||items.reduce((s,x)=>s+(x.price*(x.qty||1)),0);
         const groups={};
         items.forEach(item=>{
-          const bkey=item.brandAr||item.brandEn||'';
-          if(!groups[bkey])groups[bkey]=[];
-          groups[bkey].push(item);
+          const bk=item.brandAr||item.brandEn||'غير محدد';
+          if(!groups[bk])groups[bk]=[];
+          groups[bk].push(item);
         });
-        const num=oa.length-idx;
         return`<div style="background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
             <div style="display:flex;align-items:center;gap:8px">
               <span style="background:var(--bg3);color:var(--tx);font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px">طلب #${num}</span>
               ${statusBadge(o.status)}
               <span style="font-size:11px;color:var(--mt)">${xe(o.date)}</span>
             </div>
-            <span style="color:var(--gold);font-weight:800;font-size:15px">${total} KWD</span>
+            <span style="color:var(--gold);font-weight:800">${total} KWD</span>
           </div>
           <div style="font-size:12px;color:var(--mt);margin-bottom:10px">👤 ${xe(o.marketer||'—')}</div>
-          <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
-            ${Object.entries(groups).map(([brand,gitems])=>`
-              <div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden">
-                ${brand?`<div style="background:var(--bg3);padding:5px 10px;font-size:11px;font-weight:800;color:var(--gold)">🏢 ${xe(brand)}</div>`:''}
-                ${gitems.map(item=>`
-                  <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-top:1px solid var(--bd)">
-                    <div>
-                      <div style="font-size:13px;font-weight:500;color:var(--tx)">${xe(item.product||item.nameAr||'')}</div>
-                      <div style="font-size:11px;color:var(--mt)">${xe(item.color||item.colorAr||'')}${item.size?' · '+xe(item.size):''} × ${item.qty||1}</div>
-                    </div>
-                    <span style="color:var(--gold);font-size:13px;font-weight:700">${item.price*(item.qty||1)} KWD</span>
-                  </div>`).join('')}
-              </div>`).join('')}
-          </div>
-          <div class="actions">
+          ${Object.entries(groups).map(([brand,gitems])=>`
+            <div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden;margin-bottom:6px">
+              <div style="background:var(--bg3);padding:5px 10px;font-size:11px;font-weight:800;color:var(--gold)">🏢 ${xe(brand)}</div>
+              ${gitems.map(item=>`
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-top:1px solid var(--bd)">
+                  <div>
+                    <div style="font-size:13px;font-weight:600;color:var(--tx)">${xe(item.product||item.nameAr||'')}</div>
+                    <div style="font-size:11px;color:var(--mt)">${xe(item.color||item.colorAr||'')}${item.size?' · '+xe(item.size):''} × ${item.qty||1}</div>
+                  </div>
+                  <span style="color:var(--gold);font-size:13px;font-weight:700">${item.price*(item.qty||1)} KWD</span>
+                </div>`).join('')}
+            </div>`).join('')}
+          <div class="actions" style="margin-top:8px">
             ${o.status==='new'?`<button class="act-btn act-edit" style="background:rgba(46,160,67,.1);color:var(--green);border:1px solid rgba(46,160,67,.2)" onclick="updateOrderStatus('${o.id}','confirmed')">✓ تأكيد</button>`:''}
             ${o.status==='confirmed'?`<button class="act-btn act-edit" style="background:rgba(37,99,235,.1);color:#3b82f6;border:1px solid rgba(37,99,235,.2)" onclick="updateOrderStatus('${o.id}','delivered')">📦 مسلّم</button>`:''}
             ${o.status!=='cancelled'&&o.status!=='delivered'?`<button class="act-btn act-del" onclick="updateOrderStatus('${o.id}','cancelled')">✕ إلغاء</button>`:''}
