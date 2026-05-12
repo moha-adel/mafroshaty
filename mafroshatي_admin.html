@@ -238,20 +238,22 @@ function updateBadges(){
 
 // ===== REALTIME LISTENERS =====
 function initListeners(onReady){
+  let _ready={brands:false,products:false,marketers:false,orders:false};
+  function _check(key){if(!_ready[key]){_ready[key]=true;if(onReady)onReady();}}
   db.ref('brands').on('value',snap=>{
     brands=snap.val()||{};updateBadges();
     if(currentTab==='brands'||currentTab==='overview')render();
-    if(onReady)onReady();
+    _check('brands');
   });
   db.ref('products').on('value',snap=>{
     products=snap.val()||{};updateBadges();
     if(currentTab==='products'||currentTab==='overview')render();
-    if(onReady)onReady();
+    _check('products');
   });
   db.ref('marketers').on('value',snap=>{
     marketers=snap.val()||{};updateBadges();
     if(currentTab==='marketers')render();
-    if(onReady)onReady();
+    _check('marketers');
   });
   let prevOrderKeys=new Set();
   db.ref('orders').on('value',snap=>{
@@ -265,7 +267,7 @@ function initListeners(onReady){
     });
     orders=data;updateBadges();
     if(currentTab==='orders'||currentTab==='overview')render();
-    if(onReady)onReady();
+    _check('orders');
   });
 }
 
@@ -880,28 +882,38 @@ function renderOrders(){
   return`<div class="section">
     <div class="section-hd"><div class="section-title">📦 الطلبات <span class="section-count">${oa.length}</span></div></div>
     ${oa.length===0?'<div class="empty">لا توجد طلبات بعد</div>':
-      oa.map(o=>{
-        // دعم النظام القديم (order فيه product) والجديد (order فيه items)
-        const items=o.items?Object.values(o.items):[{product:o.product,color:o.color,size:o.size||'',price:o.price,qty:o.qty||1}];
+      oa.map((o,idx)=>{
+        const items=o.items?Object.values(o.items):[{product:o.product,color:o.color,size:o.size||'',price:o.price,qty:o.qty||1,brandAr:'',brandEn:''}];
         const total=o.total||items.reduce((s,x)=>s+(x.price*(x.qty||1)),0);
+        const groups={};
+        items.forEach(item=>{
+          const bkey=item.brandAr||item.brandEn||'بدون شركة';
+          if(!groups[bkey])groups[bkey]=[];
+          groups[bkey].push(item);
+        });
+        const orderNum=oa.length-idx;
         return`<div style="background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
             <div style="display:flex;align-items:center;gap:8px">
-              <span style="color:var(--mt);font-size:11px">#${String(o.id).slice(-4)}</span>
+              <span style="background:var(--bg3);color:var(--tx);font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px">طلب #${orderNum}</span>
               ${statusBadge(o.status)}
               <span style="font-size:11px;color:var(--mt)">${xe(o.date)}</span>
             </div>
             <span style="color:var(--gold);font-weight:800;font-size:15px">${total} KWD</span>
           </div>
-          <div style="font-size:12px;color:var(--mt);margin-bottom:8px">👤 ${xe(o.marketer)} — ${items.length} ${items.length===1?'منتج':'منتجات'}</div>
-          <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
-            ${items.map(item=>`
-              <div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--bg3);border-radius:7px;border:1px solid var(--bd)">
-                <div style="flex:1">
-                  <div style="font-size:13px;font-weight:500;color:var(--tx)">${xe(item.product||item.nameAr||'')}</div>
-                  <div style="font-size:11px;color:var(--mt)">${xe(item.color||item.colorAr||'')}${item.size?` · ${xe(item.size)}`:''} × ${item.qty||1}</div>
-                </div>
-                <span style="color:var(--gold);font-size:13px;font-weight:700">${(item.price*(item.qty||1))} KWD</span>
+          <div style="font-size:12px;color:var(--mt);margin-bottom:10px">👤 ${xe(o.marketer||'—')}</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px">
+            ${Object.entries(groups).map(([brand,gitems])=>`
+              <div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden">
+                <div style="background:var(--bg3);padding:6px 10px;font-size:11px;font-weight:800;color:var(--gold)">🏢 ${xe(brand)}</div>
+                ${gitems.map(item=>`
+                  <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-top:1px solid var(--bd)">
+                    <div style="flex:1">
+                      <div style="font-size:13px;font-weight:500;color:var(--tx)">${xe(item.product||item.nameAr||'')}</div>
+                      <div style="font-size:11px;color:var(--mt)">${xe(item.color||item.colorAr||'')}${item.size?' · '+xe(item.size):''} × ${item.qty||1}</div>
+                    </div>
+                    <span style="color:var(--gold);font-size:13px;font-weight:700">${(item.price*(item.qty||1))} KWD</span>
+                  </div>`).join('')}
               </div>`).join('')}
           </div>
           <div class="actions">
@@ -1000,8 +1012,14 @@ function checkAuth(){
 }
 function startApp(){
   document.getElementById('content').innerHTML='<div class="empty" style="padding:60px;font-size:14px">⏳ جاري الاتصال بـ Firebase...</div>';
-  let readyCount=0;
-  const onReady=()=>{readyCount++;if(readyCount>=4)goTab('overview',document.getElementById('nav-overview'));};
+  let readyCount=0, appStarted=false;
+  const onReady=()=>{
+    readyCount++;
+    if(readyCount>=4 && !appStarted){
+      appStarted=true;
+      goTab('overview',document.getElementById('nav-overview'));
+    }
+  };
   initListeners(onReady);
 }
 
