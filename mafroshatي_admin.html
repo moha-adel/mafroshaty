@@ -515,6 +515,7 @@ function openProduct(id){
         <div class="form-row"><label class="form-label">السعر KWD</label><input class="form-input" id="p-price" type="number" value="${p.price||''}" style="direction:ltr"></div>
         <div class="form-row"><label class="form-label">السعر القديم</label><input class="form-input" id="p-old" type="number" value="${p.oldPrice||''}" style="direction:ltr"></div>
       </div>
+      <div class="form-row"><label class="form-label">💰 عمولة المسوق (KWD) — مبلغ ثابت لكل طلب</label><input class="form-input" id="p-comm" type="number" step="0.1" value="${p.commission||0}" style="direction:ltr"></div>
       <div class="form-2">
         <div class="form-row"><label class="form-label">الإيموجي</label><input class="form-input" id="p-emoji" value="${xe(p.emoji||'🛋️')}" style="direction:ltr;font-size:22px;text-align:center"></div>
         <div class="form-row"><label class="form-label">Badge</label>
@@ -622,6 +623,7 @@ function saveProduct(id){
     descAr:document.getElementById('p-desc-ar').value.trim(),
     descEn:document.getElementById('p-desc-en').value.trim(),
     price,oldPrice:oldPrice||null,currency:'KWD',
+    commission:Number(document.getElementById('p-comm').value)||0,
     badge:document.getElementById('p-badge').value,
     emoji:document.getElementById('p-emoji').value||'🛋️',
     status:document.getElementById('p-status').value,
@@ -735,6 +737,18 @@ function openMarketer(id){
           <option value="banned"${m.status==='banned'?' selected':''}>محظور</option>
         </select>
       </div>
+      <div style="font-size:11px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--bd)">💳 الاشتراك الشهري</div>
+      <div class="form-2">
+        <div class="form-row"><label class="form-label">تاريخ انتهاء الاشتراك</label><input class="form-input" id="m-sub-exp" type="date" value="${m.subExpiry||''}" style="direction:ltr"></div>
+        <div class="form-row"><label class="form-label">رسوم الاشتراك الشهري (KWD)</label><input class="form-input" id="m-sub-fee" type="number" step="0.5" value="${m.subFee||0}" style="direction:ltr"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:4px">
+        <button type="button" onclick="renewSub()" style="flex:1;padding:9px;border-radius:8px;background:var(--gold-dim);border:1px solid var(--gold);color:var(--gold);font-size:12px;font-weight:800;cursor:pointer;font-family:'Tajawal',sans-serif">🔄 تجديد شهر</button>
+        <button type="button" onclick="toggleStore()" id="m-store-toggle" data-active="${m.storeActive===false?'false':'true'}" style="flex:1;padding:9px;border-radius:8px;background:${m.storeActive===false?'var(--red-dim,#3a1a1a)':'var(--bg3)'};border:1px solid ${m.storeActive===false?'var(--red)':'var(--bd)'};color:${m.storeActive===false?'var(--red)':'var(--tx)'};font-size:12px;font-weight:800;cursor:pointer;font-family:'Tajawal',sans-serif">${m.storeActive===false?'▶ تشغيل المتجر':'⏸ إيقاف المتجر'}</button>
+      </div>
+      ${m.subExpiry?`<div style="font-size:11px;padding:7px 10px;border-radius:7px;background:var(--bg3);color:${new Date(m.subExpiry)<new Date()?'var(--red)':'var(--mt)'}">
+        ${new Date(m.subExpiry)<new Date()?'⚠️ الاشتراك منتهي':'✅ الاشتراك سارٍ حتى'} ${m.subExpiry}
+      </div>`:'<div style="font-size:11px;color:var(--mt);padding:4px 0">⚠️ لم يُحدد اشتراك بعد</div>'}
       <div style="font-size:11px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--bd)">🎨 تخصيص المتجر</div>
       <div class="form-2">
         <div class="form-row">
@@ -801,6 +815,30 @@ function selectTheme(id){
   });
   document.getElementById('custom-colors').style.display=id==='custom'?'grid':'none';
 }
+function renewSub(){
+  const exp=document.getElementById('m-sub-exp');
+  const cur=exp.value?new Date(exp.value):new Date();
+  if(cur<new Date())cur.setTime(new Date().getTime());
+  cur.setMonth(cur.getMonth()+1);
+  exp.value=cur.toISOString().split('T')[0];
+  toast('تم التجديد لشهر إضافي ✓');
+}
+function toggleStore(){
+  const btn=document.getElementById('m-store-toggle');
+  const isActive=btn.dataset.active!=='false';
+  btn.dataset.active=isActive?'false':'true';
+  if(isActive){
+    btn.textContent='▶ تشغيل المتجر';
+    btn.style.background='var(--red-dim,#3a1a1a)';
+    btn.style.borderColor='var(--red)';
+    btn.style.color='var(--red)';
+  }else{
+    btn.textContent='⏸ إيقاف المتجر';
+    btn.style.background='var(--bg3)';
+    btn.style.borderColor='var(--bd)';
+    btn.style.color='var(--tx)';
+  }
+}
 function saveMarketer(id){
   const name=document.getElementById('m-name').value.trim();
   const slug=document.getElementById('m-slug').value.trim().toLowerCase();
@@ -823,7 +861,10 @@ function saveMarketer(id){
     welcomeEn:document.getElementById('m-welcome-en').value.trim(),
     excluded:excludedProds,
     earnings:isNew?0:(marketers[id]?.earnings||0),
-    status:document.getElementById('m-status').value
+    status:document.getElementById('m-status').value,
+    subExpiry:document.getElementById('m-sub-exp').value||null,
+    subFee:Number(document.getElementById('m-sub-fee').value)||0,
+    storeActive:document.getElementById('m-store-toggle').dataset.active!=='false'
   };
   const p=isNew?db.ref('marketers').push(obj):db.ref('marketers/'+id).update(obj);
   p.then(()=>{closeModal();toast(isNew?'تمت إضافة المسوق ✓':'تم التعديل ✓');}).catch(e=>toast('خطأ: '+e.message,false));
