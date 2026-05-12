@@ -717,12 +717,11 @@ function addCart(pid){
   const c=p.colors[ci]||{ar:'',en:'',hex:'#ccc'};
   const size=selSize[pid]||null;
   const key=`${pid}_${ci}_${size||''}`;
-  const bid=p.brand_id||p.brand||'';
-  const br=gb(bid)||{};
   const ex=cart.find(x=>x.key===key);
+  const br=gb(p.brand_id||p.brand||'');
   if(ex) ex.qty++;
   else cart.push({key,pid,nameAr:p.nameAr,nameEn:p.nameEn,
-    brandId:bid,brandAr:br.ar||'',brandEn:br.en||'',
+    brandAr:br.ar||'',brandEn:br.en||'',
     colorAr:c.ar||c.nameAr||'',colorEn:c.en||c.nameEn||'',
     hex:c.hex,thumb:(c.imgs||[])[0]||'',size,price:p.price,qty:1});
   updateCartUI();toast(isEn?'Added to cart ✓':'✓ أضيف للسلة');
@@ -786,7 +785,7 @@ function waProduct(pid){
   const colorName=isEn?(col.en||col.nameEn||''):(col.ar||col.nameAr||'');
   const sizeName=size?(isEn?gs(size).en:gs(size).ar):'';
   // حفظ الطلب في Firebase
-  saveOrder([{nameAr:p.nameAr,nameEn:p.nameEn,colorAr:col.ar||col.nameAr||'',colorEn:col.en||col.nameEn||'',size,price:p.price,qty:1}]);
+  saveOrder([{nameAr:p.nameAr,nameEn:p.nameEn,brandAr:gb(p.brand_id||p.brand||'').ar||'',brandEn:gb(p.brand_id||p.brand||'').en||'',colorAr:col.ar||col.nameAr||'',colorEn:col.en||col.nameEn||'',size,price:p.price,qty:1}]);
   let msg=isEn
     ?`Hello 👋\nOrder from *${STORE.name}*:\n\n• *${p.nameEn}*\n  🎨 Color: ${colorName}\n${sizeName?`  📐 Size: ${sizeName}\n`:''  }  💰 Price: ${p.price} KWD`
     :`مرحباً 👋\nأريد الطلب من *${STORE.name}*:\n\n• *${p.nameAr}*\n  🎨 اللون: ${colorName}\n${sizeName?`  📐 المقاس: ${sizeName}\n`:''}  💰 السعر: ${p.price} KWD`;
@@ -795,30 +794,15 @@ function waProduct(pid){
 function sendWA(){
   if(!cart.length)return;
   const total=cart.reduce((s,x)=>s+x.price*x.qty,0);
+  // حفظ كل طلبات السلة في Firebase
   saveOrder(cart);
-
-  // تجميع بالشركة
-  const groups={};
-  cart.forEach(item=>{
-    const key=item.brandId||'other';
-    if(!groups[key])groups[key]={brandAr:item.brandAr||'',brandEn:item.brandEn||'',items:[]};
-    groups[key].items.push(item);
-  });
-
   let msg=isEn?`Hello 👋\nOrder from *${STORE.name}*:\n\n`:`مرحباً 👋\nطلبي من *${STORE.name}*:\n\n`;
-
-  Object.values(groups).forEach(g=>{
-    const brandName=isEn?(g.brandEn||g.brandAr):(g.brandAr||g.brandEn);
-    if(brandName) msg+=`🏢 *${brandName}*\n`;
-    g.items.forEach((item,i)=>{
-      const sizeName=item.size?(isEn?gs(item.size).en:gs(item.size).ar):'';
-      msg+=isEn
-        ?`  ${i+1}. *${item.nameEn}*\n     🎨 Color: ${item.colorEn}\n${sizeName?`     📐 Size: ${sizeName}\n`:''}     🛒 ${item.qty} × ${item.price} KWD\n`
-        :`  ${i+1}. *${item.nameAr}*\n     🎨 اللون: ${item.colorAr}\n${sizeName?`     📐 المقاس: ${sizeName}\n`:''}     🛒 ${item.qty} × ${item.price} KWD\n`;
-    });
-    msg+='\n';
+  cart.forEach((item,i)=>{
+    const sizeName=item.size?(isEn?gs(item.size).en:gs(item.size).ar):'';
+    msg+=isEn
+      ?`${i+1}. *${item.nameEn}*\n   🎨 Color: ${item.colorEn}\n${sizeName?`   📐 Size: ${sizeName}\n`:''}   🛒 ${item.qty} × ${item.price} = ${item.price*item.qty} KWD\n\n`
+      :`${i+1}. *${item.nameAr}*\n   🎨 اللون: ${item.colorAr}\n${sizeName?`   📐 المقاس: ${sizeName}\n`:''}   🛒 ${item.qty} × ${item.price} = ${item.price*item.qty} KWD\n\n`;
   });
-
   msg+=isEn?`💰 *Total: ${total} KWD*`:`💰 *الإجمالي: ${total} KWD*`;
   window.open(`https://wa.me/${STORE.waNumber||'96512345678'}?text=${encodeURIComponent(msg)}`,'_blank');
 }
@@ -836,6 +820,8 @@ function saveOrder(items){
   const orderItems=items.map(item=>({
     product: item.nameAr,
     productEn: item.nameEn||'',
+    brandAr: item.brandAr||'',
+    brandEn: item.brandEn||'',
     color: item.colorAr||'',
     colorEn: item.colorEn||'',
     size: item.size||'',
