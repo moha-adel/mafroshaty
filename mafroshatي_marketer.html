@@ -198,7 +198,7 @@ firebase.initializeApp(FB);
 const db=firebase.database();
 
 const MKT_KEY='maf_mkt_id';
-let currentMarketer=null, allOrders={}, allProducts={}, currentTab='overview', orderFilter='all';
+let currentMarketer=null, allOrders={}, allProducts={}, allBrands={}, currentTab='overview', orderFilter='all';
 
 // ===== LOGIN =====
 function doLogin(){
@@ -265,8 +265,10 @@ function startApp(id, mkt){
     if(currentTab==='orders'||currentTab==='overview'||currentTab==='earnings')renderTab();
   });
   db.ref('products').on('value',snap=>{
-    const raw=snap.val()||{};
-    allProducts=raw;
+    allProducts=snap.val()||{};
+  });
+  db.ref('brands').on('value',snap=>{
+    allBrands=snap.val()||{};
   });
 
   renderTab();
@@ -289,6 +291,13 @@ function renderTab(){
 
 // ===== HELPERS =====
 function ordersArr(){return Object.entries(allOrders).map(([k,v])=>({...v,id:k})).sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));}
+function resolveItemBrand(item){
+  if(item.brandAr||item.brandEn)return item.brandAr||item.brandEn;
+  const p=Object.values(allProducts||{}).find(p=>p.nameAr===item.product||p.nameEn===item.product);
+  if(!p)return'';
+  const b=allBrands[p.brand_id||p.brand];
+  return b?b.ar||b.en||'':'';
+}
 function xe(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function statusBadge(s){
   if(s==='new')return'<span class="badge badge-new">جديد</span>';
@@ -385,7 +394,7 @@ function orderCard(o,orderNum){
   const canCancel=o.status==='new'||o.status==='confirmed';
   const groups={};
   items.forEach(item=>{
-    const bk=item.brandAr||item.brandEn||'غير محدد';
+    const bk=resolveItemBrand(item)||'غير محدد';
     if(!groups[bk])groups[bk]=[];
     groups[bk].push(item);
   });
