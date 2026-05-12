@@ -202,16 +202,20 @@ let currentMarketer=null, allOrders={}, allProducts={}, currentTab='overview', o
 
 // ===== LOGIN =====
 function doLogin(){
-  const wa=document.getElementById('loginWa').value.trim().replace(/\s+/g,'');
+  const wa=document.getElementById('loginWa').value.trim().replace(/\s+/g,'').replace(/^\+/,'');
   if(!wa||wa.length<8){showLoginErr('أدخل رقم واتساب صحيح');return;}
   document.getElementById('loginErr').textContent='⏳ جاري التحقق...';
-  db.ref('marketers').orderByChild('waNumber').equalTo(wa).once('value',snap=>{
-    const data=snap.val();
-    if(!data){showLoginErr('الرقم غير مسجل في المنصة');return;}
-    const [id,mkt]=[Object.keys(data)[0],Object.values(data)[0]];
+  db.ref('marketers').once('value',snap=>{
+    const all=snap.val()||{};
+    const found=Object.entries(all).find(([k,v])=>{
+      const stored=String(v.waNumber||'').trim().replace(/^\+/,'');
+      return stored===wa;
+    });
+    if(!found){showLoginErr('الرقم غير مسجل في المنصة');return;}
+    const [id,mkt]=found;
     localStorage.setItem(MKT_KEY,id);
     startApp(id,mkt);
-  }).catch(()=>showLoginErr('خطأ في الاتصال، حاول مجدداً'));
+  }).catch(e=>showLoginErr('خطأ في الاتصال: '+e.message));
 }
 function showLoginErr(msg){document.getElementById('loginErr').textContent=msg;}
 function doLogout(){
@@ -243,8 +247,14 @@ function startApp(id, mkt){
   document.getElementById('app').style.display='block';
 
   // listeners
-  db.ref('orders').orderByChild('marketer_id').equalTo(id).on('value',snap=>{
-    allOrders=snap.val()||{};
+  db.ref('orders').on('value',snap=>{
+    const all=snap.val()||{};
+    // فلترة طلبات هذا المسوق فقط
+    const mine={};
+    Object.entries(all).forEach(([k,v])=>{
+      if(v.marketer_id===id)mine[k]=v;
+    });
+    allOrders=mine;
     if(currentTab==='orders'||currentTab==='overview'||currentTab==='earnings')renderTab();
   });
   db.ref('products').on('value',snap=>{
