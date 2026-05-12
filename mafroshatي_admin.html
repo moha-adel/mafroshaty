@@ -240,6 +240,18 @@ let editColors=[], currentTab='overview', _selectedTheme='luxury';
 // ===== HELPERS =====
 function xe(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function gb(id){return brands[id]||{ar:'—',en:'—'}}
+// يجيب اسم الشركة من اسم المنتج (للأوردرات القديمة)
+function getBrandByProduct(nameAr){
+  const p=Object.values(products||{}).find(p=>p.nameAr===nameAr||p.nameEn===nameAr);
+  if(!p)return'';
+  const b=brands[p.brand_id||p.brand];
+  return b?b.ar||b.en||'':'';
+}
+// يجيب اسم الشركة من item (يدعم القديم والجديد)
+function resolveItemBrand(item){
+  if(item.brandAr||item.brandEn)return item.brandAr||item.brandEn;
+  return getBrandByProduct(item.product||item.nameAr||'');
+}
 function brandsArr(){return Object.entries(brands).map(([k,v])=>({...v,id:k}))}
 function productsArr(){return Object.entries(products).map(([k,v])=>({...v,id:k}))}
 function marketersArr(){return Object.entries(marketers).map(([k,v])=>({...v,id:k}))}
@@ -879,7 +891,7 @@ function renderOrders(){
         const total=o.total||items.reduce((s,x)=>s+(x.price*(x.qty||1)),0);
         const groups={};
         items.forEach(item=>{
-          const bk=item.brandAr||item.brandEn||'غير محدد';
+          const bk=resolveItemBrand(item)||'غير محدد';
           if(!groups[bk])groups[bk]=[];
           groups[bk].push(item);
         });
