@@ -336,7 +336,7 @@ function renderOverview(){
   </div>
   ${newO>0?`
   <div class="section-title">🔔 طلبات جديدة تحتاج تأكيد</div>
-  ${oa.filter(o=>o.status==='new').slice(0,3).map(o=>orderCard(o)).join('')}
+  ${oa.filter(o=>o.status==='new').slice(0,3).map((o,i)=>orderCard(o,oa.length-i)).join('')}
   ${newO>3?`<div style="text-align:center;padding:8px;font-size:12px;color:var(--blue);cursor:pointer" onclick="goTab('orders',document.getElementById('tab-orders'))">عرض كل الطلبات ←</div>`:''}
   `:'<div class="empty">🎉 لا يوجد طلبات جديدة الآن</div>'}`;
 }
@@ -357,32 +357,43 @@ function renderOrders(){
     ${filters.map(f=>`<button class="filter-tab${orderFilter===f.id?' on':''}" onclick="setFilter('${f.id}')">${f.label}</button>`).join('')}
   </div>
   <div class="section-title">📦 طلباتي <span class="count-badge">${filtered.length}</span></div>
-  ${filtered.length?filtered.map(o=>orderCard(o)).join(''):'<div class="empty">لا توجد طلبات في هذه الفئة</div>'}`;
+  ${filtered.length?filtered.map((o,i)=>orderCard(o,oa.length-oa.indexOf(o))).join(''):'<div class="empty">لا توجد طلبات في هذه الفئة</div>'}`;
 }
 function setFilter(f){orderFilter=f;renderTab();}
 
-function orderCard(o){
+function orderCard(o,orderNum){
   const items=o.items||[];
   const comm=calcComm(o);
   const canConfirm=o.status==='new';
   const canDeliver=o.status==='confirmed';
   const canCancel=o.status==='new'||o.status==='confirmed';
+  // تجميع بالشركة
+  const groups={};
+  items.forEach(item=>{
+    const bkey=item.brandAr||item.brandEn||'بدون شركة';
+    if(!groups[bkey])groups[bkey]=[];
+    groups[bkey].push(item);
+  });
   return`<div class="order-card">
     <div class="order-hd">
-      <span class="order-id">#${xe(o.id?.slice(-6)||'—')}</span>
+      <span class="order-id" style="background:var(--bg3);padding:2px 8px;border-radius:6px;font-family:inherit">طلب #${orderNum||'—'}</span>
       <div style="display:flex;align-items:center;gap:6px">
         ${statusBadge(o.status)}
         <span class="order-date">${xe(o.date||'')}</span>
       </div>
     </div>
     <div class="order-items">
-      ${items.map(item=>`<div class="order-item-row">
-        <div>
-          <div class="order-item-name">${xe(item.product||item.nameAr||'')}</div>
-          <div class="order-item-detail">${[item.color,item.size].filter(Boolean).join(' · ')}</div>
-        </div>
-        <div class="order-item-price">${xe(item.qty||1)} × ${xe(item.price||0)} KWD</div>
-      </div>`).join('')}
+      ${Object.entries(groups).map(([brand,gitems])=>`
+        <div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden;margin-bottom:6px">
+          <div style="background:var(--bg3);padding:5px 10px;font-size:11px;font-weight:800;color:var(--gold)">🏢 ${xe(brand)}</div>
+          ${gitems.map(item=>`<div class="order-item-row" style="border-top:1px solid var(--bd)">
+            <div>
+              <div class="order-item-name">${xe(item.product||item.nameAr||'')}</div>
+              <div class="order-item-detail">${[item.color||item.colorAr,item.size].filter(Boolean).join(' · ')}</div>
+            </div>
+            <div class="order-item-price">${xe(item.qty||1)} × ${xe(item.price||0)} KWD</div>
+          </div>`).join('')}
+        </div>`).join('')}
     </div>
     <div class="order-ft">
       <div>
@@ -458,33 +469,72 @@ function renderEarnings(){
 function renderStore(){
   const m=currentMarketer;
   const storeUrl=`https://${m.slug}.mafroshatي.com`;
-  const altUrl=`https://mafroshaty.vercel.app/store.html?slug=${m.slug}`;
   return`
   <div class="section-title">🔗 رابط متجري</div>
   <div class="share-card">
-    <div class="share-title">الرابط الرئيسي</div>
     <div class="share-url" onclick="copyUrl('${storeUrl}')">${storeUrl}</div>
     <div class="share-btns">
-      <button class="share-btn copy" onclick="copyUrl('${storeUrl}')">📋 نسخ</button>
-      <button class="share-btn wa" onclick="shareOnWa('${storeUrl}')">📲 واتساب</button>
+      <button class="share-btn copy" onclick="copyUrl('${storeUrl}')">📋 نسخ الرابط</button>
+      <button class="share-btn wa" onclick="shareOnWa('${storeUrl}')">📲 مشاركة واتساب</button>
     </div>
   </div>
-  <div class="share-card">
-    <div class="share-title">رابط بديل (Vercel)</div>
-    <div class="share-url" onclick="copyUrl('${altUrl}')" style="font-size:11px">${altUrl}</div>
-    <div class="share-btns">
-      <button class="share-btn copy" onclick="copyUrl('${altUrl}')">📋 نسخ</button>
-      <button class="share-btn wa" onclick="shareOnWa('${altUrl}')">📲 واتساب</button>
+
+  <div class="section-title" style="margin-top:6px">🎨 تخصيص المتجر</div>
+  <div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--radius);padding:16px">
+    <div style="margin-bottom:14px">
+      <label style="font-size:12px;color:var(--mt);display:block;margin-bottom:6px;font-weight:700">🖼️ لوجو المتجر</label>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div id="cust-logo-prev" style="width:56px;height:56px;border-radius:50%;border:2px solid var(--bd);background:var(--bg3);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
+          ${m.logo?`<img src="${m.logo}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`:'\U0001f464'}
+        </div>
+        <div style="flex:1">
+          <input id="cust-logo-url" class="login-input" style="margin-bottom:6px;font-size:12px;padding:8px 12px;text-align:right;direction:rtl" placeholder="رابط اللوجو (URL)" value="${xe(m.logo||'')}" oninput="previewCustImg('cust-logo-url','cust-logo-prev',true)">
+          <button onclick="document.getElementById('cust-logo-file').click()" style="padding:6px 12px;border-radius:7px;background:var(--bg3);border:1px dashed var(--bd);color:var(--mt);font-size:11px;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif">📁 رفع صورة</button>
+          <input type="file" id="cust-logo-file" accept="image/*" style="display:none" onchange="loadCustImg(this,'cust-logo-url','cust-logo-prev',true)">
+        </div>
+      </div>
     </div>
-  </div>
-  <div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--radius);padding:14px 16px">
-    <div class="section-title" style="margin-bottom:10px">📱 معلومات المتجر</div>
-    <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
-      <div style="display:flex;justify-content:space-between"><span style="color:var(--mt)">اسم المتجر</span><span style="font-weight:700">${xe(m.name)}</span></div>
-      <div style="display:flex;justify-content:space-between"><span style="color:var(--mt)">الرابط</span><span style="font-weight:700;direction:ltr">${xe(m.slug)}</span></div>
-      <div style="display:flex;justify-content:space-between"><span style="color:var(--mt)">الثيم</span><span style="font-weight:700">${xe(m.theme||'luxury')}</span></div>
+    <div style="margin-bottom:14px">
+      <label style="font-size:12px;color:var(--mt);display:block;margin-bottom:6px;font-weight:700">🖼️ بانر المتجر <span style="font-size:10px;color:var(--mt)">(1500×500px)</span></label>
+      <div id="cust-banner-prev" style="width:100%;height:80px;border-radius:8px;border:1.5px solid var(--bd);background:var(--bg3);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--mt);margin-bottom:8px">
+        ${m.banner?`<img src="${m.banner}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`:'لا يوجد بانر'}
+      </div>
+      <input id="cust-banner-url" class="login-input" style="margin-bottom:6px;font-size:12px;padding:8px 12px;text-align:right;direction:rtl" placeholder="رابط البانر (URL)" value="${xe(m.banner||'')}" oninput="previewCustImg('cust-banner-url','cust-banner-prev',false)">
+      <button onclick="document.getElementById('cust-banner-file').click()" style="padding:6px 12px;border-radius:7px;background:var(--bg3);border:1px dashed var(--bd);color:var(--mt);font-size:11px;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif">📁 رفع بانر</button>
+      <input type="file" id="cust-banner-file" accept="image/*" style="display:none" onchange="loadCustImg(this,'cust-banner-url','cust-banner-prev',false)">
     </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:12px;color:var(--mt);display:block;margin-bottom:6px;font-weight:700">💬 رسالة ترحيب</label>
+      <input id="cust-welcome" class="login-input" style="font-size:13px;padding:10px 12px;text-align:right;direction:rtl" placeholder="مرحباً بك في متجري" value="${xe(m.welcomeAr||'')}">
+    </div>
+    <button onclick="saveCust()" style="width:100%;padding:11px;border-radius:10px;background:var(--gold);color:#0d1117;font-size:14px;font-weight:800;border:none;cursor:pointer;font-family:'Tajawal',sans-serif">💾 حفظ التعديلات</button>
   </div>`;
+}
+function previewCustImg(inputId,prevId,circle){
+  const url=document.getElementById(inputId)?.value.trim();
+  const el=document.getElementById(prevId);
+  if(!el)return;
+  el.innerHTML=url?`<img src="${url}" style="width:100%;height:100%;object-fit:cover">`:(circle?'\U0001f464':'لا يوجد بانر');
+}
+function loadCustImg(inp,urlId,prevId,circle){
+  const f=inp.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{document.getElementById(urlId).value=e.target.result;previewCustImg(urlId,prevId,circle);};
+  r.readAsDataURL(f);
+}
+function saveCust(){
+  const logo=document.getElementById('cust-logo-url').value.trim();
+  const banner=document.getElementById('cust-banner-url').value.trim();
+  const welcomeAr=document.getElementById('cust-welcome').value.trim();
+  db.ref('marketers/'+currentMarketer.id).update({logo,banner,welcomeAr})
+    .then(()=>{
+      currentMarketer={...currentMarketer,logo,banner,welcomeAr};
+      const av=document.getElementById('hdrAvatar');
+      if(av&&logo)av.src=logo;
+      toast('\u2705 تم حفظ التعديلات');
+    })
+    .catch(e=>toast('خطأ: '+e.message));
+}
 }
 function copyUrl(url){
   navigator.clipboard.writeText(url).then(()=>toast('✓ تم النسخ')).catch(()=>{
